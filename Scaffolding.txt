@@ -1,0 +1,566 @@
+// Scaffolding System - By Daxter
+// Based on a similar system for Black and White 1 recreated for the sequel
+// Scaffolding is to replace the Construction Menu of the "Toolbar" in Black and White 2
+
+global HouseAUnlocked = 0
+global HouseBUnlocked = 0
+global HouseCUnlocked = 0
+global HouseDUnlocked = 0
+global HouseEUnlocked = 0
+
+define script Scaffolds(oTown)
+define script CreateHouseScaffolds(ThisScaffold, NextScaffoldHouse)
+define script ScaffoldSelectionHouses(ThisScaffold)
+define script ScaffoldSelectionCivics(ThisScaffold)
+define script ScaffoldRotation(ThisScaffold)
+define script CreateCivicScaffolds(NewCivicScaffold, NextScaffoldCivic, TownScaffold)
+define script NewTownScaffold(ThisScaffold, NextScaffoldCivic, DeletableScaffold)
+
+begin script Scaffolds(oTown)
+	SmallScaffold = 0
+	NewHouseScaffold = 0
+	NewCivicScaffold = 0
+	ThisScaffold = 0
+	ScaffoldCount = 0
+	Lumbermill = 0
+	HouseScaffoldFlag = 0
+	CivicScaffoldFlag = 0
+	HOUSEAScaffold = 0
+start
+Lumbermill = get building ABODE_NUMBER_LUMBERMILL in oTown min built 1.0
+ wait until Lumbermill exists
+   HouseScaffoldFlag = create with angle 100.0 and scale 3.0 MOBILESTATIC MOBILE_STATIC_INFO_ROCK_BLOCK_SMALL at {Lumbermill}+{11,0,0}
+	override mesh for HouseScaffoldFlag with "m_bannergreekranged"
+	enable HouseScaffoldFlag indestructible
+	disable HouseScaffoldFlag pickup
+   CivicScaffoldFlag = create with angle 105.0 and scale 3.0 MOBILESTATIC MOBILE_STATIC_INFO_ROCK_BLOCK_SMALL at {Lumbermill}+{8,0,10}
+	override mesh for CivicScaffoldFlag with "m_bannergreekmelee"
+	enable CivicScaffoldFlag indestructible
+	disable CivicScaffoldFlag pickup
+begin loop
+  if HouseScaffoldFlag == get object hand is over and HouseScaffoldFlag == get object right clicked or HouseScaffoldFlag == get object hand is over and HouseScaffoldFlag  == get object left clicked
+	clear left clicked object
+	clear right clicked object
+	NewHouseScaffold = create with angle 0.0 and scale 1.00 MOBILESTATIC MOBILE_STATIC_INFO_ROCK_BOULDER_SMALL at {HouseScaffoldFlag}+{5,0,1}
+	override mesh for NewHouseScaffold with "m_genericwoodinhand"
+	ThisScaffold = NewHouseScaffold
+	 wait until NewHouseScaffold == get object held
+	    run background script ScaffoldRotation(ThisScaffold)
+   	    run background script ScaffoldSelectionHouses(ThisScaffold)
+	wait 0.5 seconds
+  elsif CivicScaffoldFlag == get object hand is over and CivicScaffoldFlag == get object right clicked or CivicScaffoldFlag == get object hand is over and CivicScaffoldFlag == get object left clicked
+	clear left clicked object
+	clear right clicked object
+	NewCivicScaffold = create with angle 0.0 and scale 1.00 MOBILESTATIC MOBILE_STATIC_INFO_ROCK_BLOCK_SMALL at {CivicScaffoldFlag}+{5,0,1}
+	override mesh for NewCivicScaffold with "m_genericwoodinhand"
+	ThisScaffold = NewCivicScaffold
+	 wait until ThisScaffold == get object held
+	    run background script ScaffoldRotation(ThisScaffold)
+   	    run background script ScaffoldSelectionCivics(ThisScaffold)
+	wait 0.5 seconds
+  end if
+end loop
+end script Scaffolds
+
+begin script ScaffoldRotation(ThisScaffold)
+         ClickToCreate = 0
+start
+  wait until ThisScaffold exists
+while ThisScaffold exists
+   if ThisScaffold != get object hand is over
+      ANGLE of ThisScaffold += 8.00
+      ZANGLE of ThisScaffold = 0.00
+      XANGLE of ThisScaffold = 0.00
+      ALTITUDE of ThisScaffold = 0.00
+      set ThisScaffold alpha 0.75
+   end if
+
+   if ThisScaffold == get object hand is over and ThisScaffold != get object left clicked
+      ANGLE of ThisScaffold += 1.50
+      set ThisScaffold alpha 0.75
+   end if
+
+   if ThisScaffold == get object hand is over and ThisScaffold == get object left clicked
+      ANGLE of ThisScaffold += 0.00
+	wait 0.5 seconds
+   end if
+end while
+end script ScaffoldRotation
+
+begin script ScaffoldSelectionCivics(ThisScaffold)
+	DistHandToScaffold = 0
+	TargetPosScaffoldFromHand = 0
+	NextScaffoldCivic = 0
+	PlannedScaffold = 0
+	oTown = get town with id 0
+	HouseCivicVisual = 0
+	NewTownInfluence = 0
+	NewTownAntiInfluence = 0
+        TownScaffold = 0
+start
+     HouseCivicVisual = create visual effect VISUAL_MIRACLE_TORNADO_GROUND on ThisScaffold time -1
+     override mesh for ThisScaffold with "m_greekstoragepit"
+     SCALE of ThisScaffold = 1.00
+     SCALE of HouseCivicVisual = 0.55
+     enable ThisScaffold indestructible
+while ThisScaffold exists
+  if hand position not near {ThisScaffold} radius 5.00 and NextScaffoldCivic == 0 and bindable action BINDABLE_ACTION_TYPE_ACTION performed
+     TownScaffold = 0
+     SCALE of ThisScaffold = 1.00
+     SCALE of HouseCivicVisual = 0.55
+     override mesh for ThisScaffold with "m_greekstoragepit"
+	NextScaffoldCivic++
+     wait 0.5 seconds
+  end if
+
+  if hand position not near {ThisScaffold} radius 5.00 and NextScaffoldCivic == 1 and bindable action BINDABLE_ACTION_TYPE_ACTION performed
+     TownScaffold = 0
+     SCALE of ThisScaffold = 1.00
+     SCALE of HouseCivicVisual = 0.50
+     override mesh for ThisScaffold with "m_greekcreche"
+	NextScaffoldCivic++
+     wait 0.5 seconds
+  end if
+
+  if hand position not near {ThisScaffold} radius 5.00 and NextScaffoldCivic == 2 and bindable action BINDABLE_ACTION_TYPE_ACTION performed
+     SCALE of ThisScaffold = 1.00
+     SCALE of HouseCivicVisual = 0.50
+     NewTownInfluence = create influence on ThisScaffold radius 10
+     override mesh for ThisScaffold with "m_greektowncentre"
+     TownScaffold = 1
+	NextScaffoldCivic++
+     wait 0.5 seconds
+  end if
+
+  if hand position not near {ThisScaffold} radius 5.00 and NextScaffoldCivic == 3 and bindable action BINDABLE_ACTION_TYPE_ACTION performed
+     TownScaffold = 0
+     SCALE of ThisScaffold = 1.00
+     SCALE of HouseCivicVisual = 0.35
+     delete NewTownInfluence
+     override mesh for ThisScaffold with "m_greekgranary"
+	NextScaffoldCivic++
+     wait 0.5 seconds
+  end if
+
+  if hand position not near {ThisScaffold} radius 5.00 and NextScaffoldCivic == 4 and bindable action BINDABLE_ACTION_TYPE_ACTION performed
+     TownScaffold = 0
+     SCALE of ThisScaffold = 1.00
+     SCALE of HouseCivicVisual = 0.50
+     override mesh for ThisScaffold with "m_greekbathhouse"
+	NextScaffoldCivic++
+     wait 0.5 seconds
+  end if
+
+  if hand position not near {ThisScaffold} radius 5.00 and NextScaffoldCivic == 5 and bindable action BINDABLE_ACTION_TYPE_ACTION performed
+     TownScaffold = 0
+     SCALE of ThisScaffold = 1.00
+     SCALE of HouseCivicVisual = 0.50
+     override mesh for ThisScaffold with "m_greekgraveyard"
+	NextScaffoldCivic++
+     wait 0.5 seconds
+  end if
+
+  if hand position not near {ThisScaffold} radius 5.00 and NextScaffoldCivic == 6 and bindable action BINDABLE_ACTION_TYPE_ACTION performed
+     TownScaffold = 0
+     SCALE of ThisScaffold = 1.00
+     SCALE of HouseCivicVisual = 0.50
+     override mesh for ThisScaffold with "m_greekinn"
+	NextScaffoldCivic++
+     wait 0.5 seconds
+  end if
+
+  if hand position not near {ThisScaffold} radius 5.00 and NextScaffoldCivic == 7 and bindable action BINDABLE_ACTION_TYPE_ACTION performed
+     TownScaffold = 0
+     SCALE of ThisScaffold = 1.00
+     SCALE of HouseCivicVisual = 0.50
+     override mesh for ThisScaffold with "m_greekprison"
+	NextScaffoldCivic++
+     wait 0.5 seconds
+  end if
+
+  if hand position not near {ThisScaffold} radius 5.00 and NextScaffoldCivic == 8 and bindable action BINDABLE_ACTION_TYPE_ACTION performed
+     TownScaffold = 0
+     SCALE of ThisScaffold = 1.00
+     SCALE of HouseCivicVisual = 0.40
+     override mesh for ThisScaffold with "m_greekretirement"
+	NextScaffoldCivic++
+     wait 0.5 seconds
+  end if
+
+  if hand position not near {ThisScaffold} radius 5.00 and NextScaffoldCivic == 9 and bindable action BINDABLE_ACTION_TYPE_ACTION performed
+     TownScaffold = 0
+     SCALE of ThisScaffold = 1.00
+     SCALE of HouseCivicVisual = 0.50
+     override mesh for ThisScaffold with "m_greeksmelter"
+	NextScaffoldCivic++
+     wait 0.5 seconds
+  end if
+
+  if hand position not near {ThisScaffold} radius 5.00 and NextScaffoldCivic == 10 and bindable action BINDABLE_ACTION_TYPE_ACTION performed
+     TownScaffold = 0
+     SCALE of ThisScaffold = 1.00
+     SCALE of HouseCivicVisual = 0.50
+     override mesh for ThisScaffold with "m_creaturepen"
+	NextScaffoldCivic++
+     wait 0.5 seconds
+  end if
+
+  if NextScaffoldCivic == 11
+	NextScaffoldCivic = 0
+  end if
+
+  if ThisScaffold != get object held
+	if hand position near {ThisScaffold} radius 5.00 and ThisScaffold == get object left clicked or hand position near {ThisScaffold} radius 5.00 and ThisScaffold == get object right clicked
+ 		stop visual effect HouseCivicVisual
+		ANGLE of ThisScaffold += 0.00
+	     		wait 0.5 seconds
+    		run background script CreateCivicScaffolds(ThisScaffold, NextScaffoldCivic, TownScaffold)
+	end if
+  end if
+end while
+end script ScaffoldSelectionCivics
+
+begin script ScaffoldSelectionHouses(ThisScaffold)
+	DistHandToScaffold = 0
+	TargetPosScaffoldFromHand = 0
+	NextScaffoldHouse = 0
+	PlannedScaffold = 0
+	oTown = get town with id 0
+	HouseCivicVisual = 0
+start
+     HouseCivicVisual = create visual effect VISUAL_MIRACLE_TORNADO_GROUND on ThisScaffold time -1
+     SCALE of ThisScaffold = 1.00
+     SCALE of HouseCivicVisual = 0.20
+     override mesh for ThisScaffold with "m_greekabode_a"
+     enable ThisScaffold indestructible
+while ThisScaffold exists
+  if hand position not near {ThisScaffold} radius 5.00 and NextScaffoldHouse == 0 and bindable action BINDABLE_ACTION_TYPE_ACTION performed
+     SCALE of ThisScaffold = 1.00
+     SCALE of HouseCivicVisual = 0.20
+     override mesh for ThisScaffold with "m_greekabode_a"
+	NextScaffoldHouse++
+     wait 0.5 seconds
+  end if
+
+  if hand position not near {ThisScaffold} radius 5.00 and NextScaffoldHouse == 1 and bindable action BINDABLE_ACTION_TYPE_ACTION performed
+     SCALE of ThisScaffold = 1.00
+     override mesh for ThisScaffold with "m_greekabode_b"  
+	NextScaffoldHouse++
+     wait 0.5 seconds
+  end if
+
+  if hand position not near {ThisScaffold} radius 5.00 and NextScaffoldHouse == 2 and bindable action BINDABLE_ACTION_TYPE_ACTION performed
+     SCALE of ThisScaffold = 1.00
+     override mesh for ThisScaffold with "m_greekabode_c"
+	NextScaffoldHouse++
+     wait 0.5 seconds
+  end if
+
+  if hand position not near {ThisScaffold} radius 5.00 and NextScaffoldHouse == 3 and bindable action BINDABLE_ACTION_TYPE_ACTION performed
+     SCALE of ThisScaffold = 1.00
+     override mesh for ThisScaffold with "m_greekabode_d"
+	NextScaffoldHouse++
+     wait 0.5 seconds
+  end if
+
+  if hand position not near {ThisScaffold} radius 5.00 and NextScaffoldHouse == 4 and bindable action BINDABLE_ACTION_TYPE_ACTION performed
+     SCALE of ThisScaffold = 1.00
+     SCALE of HouseCivicVisual = 0.30
+     override mesh for ThisScaffold with "m_greekabode_e"
+	NextScaffoldHouse++
+     wait 0.5 seconds
+  end if
+
+  if NextScaffoldHouse > 4
+	NextScaffoldHouse = 0
+  end if
+
+if ThisScaffold != get object held
+	if hand position near {ThisScaffold} radius 5.00 and ThisScaffold == get object left clicked or hand position near {ThisScaffold} radius 5.00 and ThisScaffold == get object right clicked
+ 		stop visual effect HouseCivicVisual
+		ANGLE of ThisScaffold += 0.00
+	     		wait 0.5 seconds
+    		run background script CreateHouseScaffolds(ThisScaffold, NextScaffoldHouse)
+	end if
+end if
+end while
+end script ScaffoldSelectionHouses
+
+begin script CreateCivicScaffolds(ThisScaffold, NextScaffoldCivic, TownScaffold)
+	ThisScaffold2 = 0
+	PlannedScaffold = 0
+	NewPlannedScaffold = 0
+	oTown = get town with id 0
+	ThePlayer = get oTown player
+	ScaffoldIsHeld = 0
+	HOUSEAScaffold = 0
+	DeletableScaffold = 0
+	ThisScaffoldPos = marker at {ThisScaffold}
+start
+   if NextScaffoldCivic == 1 and TownScaffold == 0
+	    wait 1 second
+	PlannedScaffold = create with angle 0.0 and scale 1.0 ABODE ABODE_INFO_GREEK_STORAGE_PIT at {ThisScaffold}
+	ANGLE of PlannedScaffold = ANGLE of ThisScaffold
+	attach PlannedScaffold to oTown
+		wait 0.5 seconds
+	enable PlannedScaffold pickup
+	enable PlannedScaffold reactable
+	enable PlannedScaffold interactable
+	enable villagers can build PlannedScaffold
+	PERCENTBUILT of PlannedScaffold = 0.01
+	release PlannedScaffold
+	DeletableScaffold = ThisScaffold
+	release DeletableScaffold
+	     wait 0.5 seconds
+	delete DeletableScaffold
+   elsif NextScaffoldCivic == 2 and TownScaffold == 0
+	    wait 1 second
+	PlannedScaffold = create with angle 0.0 and scale 1.0 ABODE ABODE_INFO_GREEK_CRECHE at {ThisScaffold}
+	ANGLE of PlannedScaffold = ANGLE of ThisScaffold
+	attach PlannedScaffold to oTown
+		wait 0.5 seconds
+	enable PlannedScaffold pickup
+	enable PlannedScaffold reactable
+	enable PlannedScaffold interactable
+	enable villagers can build PlannedScaffold
+	PERCENTBUILT of PlannedScaffold = 0.01
+	release PlannedScaffold
+	DeletableScaffold = ThisScaffold
+	release DeletableScaffold
+	     wait 0.5 seconds
+	delete DeletableScaffold
+   elsif NextScaffoldCivic == 3 and TownScaffold == 1
+	    wait 1 second
+	run background script NewTownScaffold(ThisScaffold, NextScaffoldCivic, DeletableScaffold)
+	    wait 1 second
+   elsif NextScaffoldCivic == 4 and TownScaffold == 0
+	    wait 1 second
+	PlannedScaffold = create with angle 0.0 and scale 1.0 ABODE ABODE_INFO_GREEK_GRANARY at {ThisScaffold}
+	ANGLE of PlannedScaffold = ANGLE of ThisScaffold
+	attach PlannedScaffold to oTown
+		wait 0.5 seconds
+	enable PlannedScaffold pickup
+	enable PlannedScaffold reactable
+	enable PlannedScaffold interactable
+	enable villagers can build PlannedScaffold
+	PERCENTBUILT of PlannedScaffold = 0.01
+	release PlannedScaffold
+	DeletableScaffold = ThisScaffold
+	release DeletableScaffold
+	     wait 0.5 seconds
+	delete DeletableScaffold
+   elsif NextScaffoldCivic == 5 and TownScaffold == 0
+	    wait 1 second
+	PlannedScaffold = create with angle 0.0 and scale 1.0 ABODE ABODE_INFO_GREEK_PUB at {ThisScaffold}
+	ANGLE of PlannedScaffold = ANGLE of ThisScaffold
+	attach PlannedScaffold to oTown
+		wait 0.5 seconds
+	enable PlannedScaffold pickup
+	enable PlannedScaffold reactable
+	enable PlannedScaffold interactable
+	enable villagers can build PlannedScaffold
+	PERCENTBUILT of PlannedScaffold = 0.01
+	release PlannedScaffold
+	DeletableScaffold = ThisScaffold
+	release DeletableScaffold
+	     wait 0.5 seconds
+	delete DeletableScaffold
+   elsif NextScaffoldCivic == 6 and TownScaffold == 0
+	    wait 1 second
+	PlannedScaffold = create with angle 0.0 and scale 1.0 ABODE ABODE_INFO_GREEK_GRAVEYARD at {ThisScaffold}
+	ANGLE of PlannedScaffold = ANGLE of ThisScaffold
+	attach PlannedScaffold to oTown
+		wait 0.5 seconds
+	enable PlannedScaffold pickup
+	enable PlannedScaffold reactable
+	enable PlannedScaffold interactable
+	enable villagers can build PlannedScaffold
+	PERCENTBUILT of PlannedScaffold = 0.01
+	release PlannedScaffold
+	DeletableScaffold = ThisScaffold
+	release DeletableScaffold
+	     wait 0.5 seconds
+	delete DeletableScaffold
+   elsif NextScaffoldCivic == 7 and TownScaffold == 0
+	    wait 1 second
+	PlannedScaffold = create with angle 0.0 and scale 1.0 ABODE ABODE_INFO_GREEK_PRISON at {ThisScaffold}
+	ANGLE of PlannedScaffold = ANGLE of ThisScaffold
+	attach PlannedScaffold to oTown
+		wait 0.5 seconds
+	enable PlannedScaffold pickup
+	enable PlannedScaffold reactable
+	enable PlannedScaffold interactable
+	enable villagers can build PlannedScaffold
+	PERCENTBUILT of PlannedScaffold = 0.01
+	release PlannedScaffold
+	DeletableScaffold = ThisScaffold
+	release DeletableScaffold
+	     wait 0.5 seconds
+	delete DeletableScaffold
+   elsif NextScaffoldCivic == 8 and TownScaffold == 0
+	    wait 1 second
+	PlannedScaffold = create with angle 0.0 and scale 1.0 ABODE ABODE_INFO_GREEK_OLD_PERSONS_HOME at {ThisScaffold}
+	ANGLE of PlannedScaffold = ANGLE of ThisScaffold
+	attach PlannedScaffold to oTown
+		wait 0.5 seconds
+	enable PlannedScaffold pickup
+	enable PlannedScaffold reactable
+	enable PlannedScaffold interactable
+	enable villagers can build PlannedScaffold
+	PERCENTBUILT of PlannedScaffold = 0.01
+	release PlannedScaffold
+	DeletableScaffold = ThisScaffold
+	release DeletableScaffold
+	     wait 0.5 seconds
+	delete DeletableScaffold
+   elsif NextScaffoldCivic == 9 and TownScaffold == 0
+	    wait 1 second
+	PlannedScaffold = create with angle 0.0 and scale 1.0 ABODE ABODE_INFO_GREEK_SMELTER at {ThisScaffold}
+	ANGLE of PlannedScaffold = ANGLE of ThisScaffold
+	attach PlannedScaffold to oTown
+		wait 0.5 seconds
+	enable PlannedScaffold pickup
+	enable PlannedScaffold reactable
+	enable PlannedScaffold interactable
+	enable villagers can build PlannedScaffold
+	PERCENTBUILT of PlannedScaffold = 0.01
+	release PlannedScaffold
+	DeletableScaffold = ThisScaffold
+	release DeletableScaffold
+	     wait 0.5 seconds
+	delete DeletableScaffold
+   elsif NextScaffoldCivic == 0 and TownScaffold == 0
+	    wait 1 second
+	PlannedScaffold = create with angle 0.0 and scale 1.0 ABODE ABODE_INFO_GREEK_CREATURE_PEN at {ThisScaffold}
+	ANGLE of PlannedScaffold = ANGLE of ThisScaffold
+	attach PlannedScaffold to oTown
+		wait 0.5 seconds
+	enable PlannedScaffold pickup
+	enable PlannedScaffold reactable
+	enable PlannedScaffold interactable
+	enable villagers can build PlannedScaffold
+	PERCENTBUILT of PlannedScaffold = 0.01
+	release PlannedScaffold
+	DeletableScaffold = ThisScaffold
+	release DeletableScaffold
+	     wait 0.5 seconds
+	delete DeletableScaffold
+   end if
+end script CreateCivicScaffolds
+
+begin script CreateHouseScaffolds(ThisScaffold, NextScaffoldHouse)
+	ThisScaffold2 = 0
+	PlannedScaffold = 0
+	NewPlannedScaffold = 0
+	oTown = get town with id 0
+	ThePlayer = get oTown player
+	ScaffoldIsHeld = 0
+	HOUSEAScaffold = 0
+	DeletableScaffold = 0
+	ThisScaffoldPos = marker at {ThisScaffold}
+start
+   if NextScaffoldHouse == 1
+	    wait 1 second
+	PlannedScaffold = create with angle 0.0 and scale 1.0 ABODE ABODE_INFO_GREEK_HOUSE_A at {ThisScaffold}
+	ANGLE of PlannedScaffold = ANGLE of ThisScaffold
+	attach PlannedScaffold to oTown
+		wait 0.1 seconds
+	enable PlannedScaffold pickup
+	enable PlannedScaffold reactable
+	enable PlannedScaffold interactable
+	enable villagers can build PlannedScaffold
+	PERCENTBUILT of PlannedScaffold = 0.01
+	release PlannedScaffold
+	delete ThisScaffold
+	ThisScaffold = 0
+   elsif NextScaffoldHouse == 2
+	    wait 1 second
+	PlannedScaffold = create with angle 0.0 and scale 1.0 ABODE ABODE_INFO_GREEK_HOUSE_B at {ThisScaffold}
+	ANGLE of PlannedScaffold = ANGLE of ThisScaffold
+	attach PlannedScaffold to oTown
+		wait 0.1 seconds
+	enable PlannedScaffold pickup
+	enable PlannedScaffold reactable
+	enable PlannedScaffold interactable
+	enable villagers can build PlannedScaffold
+	PERCENTBUILT of PlannedScaffold = 0.01
+	release PlannedScaffold
+	delete ThisScaffold
+	ThisScaffold = 0
+   elsif NextScaffoldHouse == 3
+	    wait 1 second
+	PlannedScaffold = create with angle 0.0 and scale 1.0 ABODE ABODE_INFO_GREEK_HOUSE_C at {ThisScaffold}
+	ANGLE of PlannedScaffold = ANGLE of ThisScaffold
+	attach PlannedScaffold to oTown
+		wait 0.1 seconds
+	enable PlannedScaffold pickup
+	enable PlannedScaffold reactable
+	enable PlannedScaffold interactable
+	enable villagers can build PlannedScaffold
+	PERCENTBUILT of PlannedScaffold = 0.01
+	release PlannedScaffold
+	delete ThisScaffold
+	ThisScaffold = 0
+   elsif NextScaffoldHouse == 4
+	    wait 1 second
+	PlannedScaffold = create with angle 0.0 and scale 1.0 ABODE ABODE_INFO_GREEK_HOUSE_D at {ThisScaffold}
+	ANGLE of PlannedScaffold = ANGLE of ThisScaffold
+	attach PlannedScaffold to oTown
+		wait 0.1 seconds
+	enable PlannedScaffold pickup
+	enable PlannedScaffold reactable
+	enable PlannedScaffold interactable
+	enable villagers can build PlannedScaffold
+	PERCENTBUILT of PlannedScaffold = 0.01
+	release PlannedScaffold
+	delete ThisScaffold
+	ThisScaffold = 0
+   elsif NextScaffoldHouse == 0
+	    wait 1 second
+	PlannedScaffold = create with angle 0.0 and scale 1.0 ABODE ABODE_INFO_GREEK_HOUSE_E at {ThisScaffold}
+	ANGLE of PlannedScaffold = ANGLE of ThisScaffold
+	attach PlannedScaffold to oTown
+		wait 0.1 seconds
+	enable PlannedScaffold pickup
+	enable PlannedScaffold reactable
+	enable PlannedScaffold interactable
+	enable villagers can build PlannedScaffold
+	PERCENTBUILT of PlannedScaffold = 0.01
+	release PlannedScaffold
+	delete ThisScaffold
+	ThisScaffold = 0
+   end if
+end script CreateHouseScaffolds
+
+begin script NewTownScaffold(ThisScaffold, NextScaffoldCivic, DeletableScaffold)
+	NewTown = 0
+	NewTownID = 3
+	oTown = get town with id 0
+	NearestLumbermill = 0
+	NewVillager = 0
+	ScaffoldPos = 0
+start
+        NearestLumbermill = get building LUMBERMILL in oTown min built 1.0
+  wait 0.5 seconds
+	ScaffoldPos = marker at {ThisScaffold}
+	NewTown = create with angle 90.00 and scale 1.00 ABODE ABODE_INFO_GREEK_TOWN_CENTRE at {ThisScaffold}
+	attach NewTown to oTown
+	NextScaffoldCivic = 0
+  wait 1.5 seconds
+	NewVillager = create random villager of tribe TRIBE_TYPE_GREEK at {NewTown}
+	set town NewTown desire for TOWN_DESIRE_FOR_FOOD to 0.5
+	set town NewTown desire for TOWN_DESIRE_FOR_WOOD to 0.5
+	set town NewTown desire for TOWN_DESIRE_FOR_ORE to 0.5
+	set town NewTown desire for TOWN_DESIRE_TO_BREED to 0.25
+	set town NewTown desire for TOWN_DESIRE_TO_BUILD to 0.1
+	set town NewTown desire for TOWN_DESIRE_TO_MIGRATE to 0.0
+	set town NewTown desire for TOWN_DESIRE_FOR_HOMES to 1.0
+	ANGLE of ThisScaffold += 0.00
+	move ThisScaffold to limbo
+	release NewTown
+  wait until NewTown exists and not ThisScaffold is moving
+     wait 1 second
+	release ThisScaffold
+	HEALTH of ThisScaffold = 0.0
+	delete ThisScaffold
+end script NewTownScaffold

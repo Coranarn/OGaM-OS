@@ -1,0 +1,2734 @@
+// God AI - version 2.3
+// Copyright 2007 - onward Daxter
+// Number of Scripts: 41
+// Global Variables: 19
+// Defined variables: 9
+// OGaM Specific: Yes
+// User-Friendly: Yes
+
+// Script can be searched by entering the following 
+// codes to reach a certain part of this file.
+
+/*
+- SpawnPlatoon8XC2 - SpawnPlatoon script
+- StorehouseConst9912 - BuildStorehouse script
+- GodConstN1223 - GodHelpConstructHousing script
+- Main44RT - God AI Main script
+- FoodGath21A - FoodGatherAction script
+- WoodGath21A - WoodGatherAction script
+- OreGath21A - OreGatherAction script
+- ProtecGH12 - ProtectTheTown script
+- GodProtecHJ9I - GodProtectTownFromEnemyCreature script
+- WATFIL2321KBB - WaterTheFields script
+- GodRelate234C - GodRelationshipSystem script
+- HealTV291278 - HealThoseVillagers script
+*/
+
+// Standard globals for God AI
+//define NUMBER_BUILDINGS = 0
+//define TREE_TYPE = 2
+define MAX_NUMBER_UNBUILT = 5
+
+//global ThisBuilding[NUMBER_BUILDINGS]
+global UnderAttack
+global WasUnderAttack
+global AztecGodsPlatoon
+global InfluenceExtensionOneTime
+global NewGodsInfluenceRing
+global CantPickThingsUpOutsideInfluence
+global SpawnTimer
+global CanChangeTowns
+global AllyGodStartingThreshold = 0
+global NonAllyGodStartingThreshold = 0
+global NewConstructions[MAX_NUMBER_UNBUILT]
+//global Tree[TREE_TYPE]
+
+global WaterMiracleAlreadyCast = 0
+global HealMiracleAlreadyCast = 0
+global FireMiracleAlreadyCast = 0
+global MeteorMiracleAlreadyCast = 0
+global StormMiracleAlreadyCast = 0
+
+// Ore Mine {X, Y, Z} Positions
+
+//OreMine1//
+global OreMine1
+
+define Mine1X = 1028 // X-Pos of Ore Mine(OreMine1) in Landscape Editor
+define Mine1Y = 52 // Y-Pos of Ore Mine(OreMine1) in Landscape Editor
+define Mine1Z = 1313 // Z-Pos of Ore Mine(OreMine1) in Landscape Editor
+
+//OreMine2//
+global OreMine2
+
+define Mine2X = 1329 // X-Pos of Ore Mine(OreMine2) in Landscape Editor
+define Mine2Y = 57.48 // Y-Pos of Ore Mine(OreMine2) in Landscape Editor
+define Mine2Z = 518 // Z-Pos of Ore Mine(OreMine2) in Landscape Editor
+
+//OreMine3//
+global OreMine3
+
+define Mine3X = 545 // X-Pos of Ore Mine(OreMine3) in Landscape Editor
+define Mine3Y = 19.74 // Y-Pos of Ore Mine(OreMine3) in Landscape Editor
+define Mine3Z = 1198 // Z-Pos of Ore Mine(OreMine3) in Landscape Editor
+
+// Alignment Globals
+global GGod_AlignmentAttackedPlayerPlatoon
+
+
+// Main Script
+define script RunGodessAI(NewGodsTown, HandRR, HandGG, HandBB, GodHasRelationsWithPlayer)
+define script RunGeneralGodAI(NewGodsTown, HandRR, HandGG, HandBB, GodHasRelationsWithPlayer)
+
+//define script Interventions - COMING SOON
+//define script CreatureControl - COMING SOON
+define script StartRelationSessionTimer(AffectionSessionStarted)
+define script AllyCheckForPlayerMiracleCasts(NewGodsHand)
+define script EnemyCheckForPlayerMiracleCasts(NewGodsHand)
+define script CurrentRelationshipStatus(NewRelationshipValue, NewGodsTown)
+define script GodRelationshipScriptTrigger(GodHasRelationsWithPlayer, NewGodsHand, NewGodsTown)
+define script HandleAffection(NewRelationshipValue, EnemyThresholdMax, AllyThresholdMax, NeutralThreshold, NeutralThresholdToAlly, NeutralThresholdToEnemy, NewGodsTown)
+define script AllyAffectionScript(NewRelationshipValue, SetGodsStarterThreshold, EnemyThresholdMax, AllyThresholdMax, NeutralThreshold, NeutralThresholdToAlly, NeutralThresholdToEnemy, NewGodsHand, NewGodsTown, AffectionSessionStarted, GodHasRelationsWithPlayer)
+define script EnemyAffectionScript(NewRelationshipValue, SetGodsStarterThreshold, EnemyThresholdMax, AllyThresholdMax, NeutralThreshold, NeutralThresholdToAlly, NeutralThresholdToEnemy, NewGodsHand, NewGodsTown, AffectionSessionStarted, GodHasRelationsWithPlayer)
+
+// Resource script for Gods
+define script FoodGatherAction(NewGodsHand, NewGodsTown)
+define script WoodGatherAction(NewGodsHand, NewGodsTown)
+define script OreGatherAction(NewGodsHand, NewGodsTown)
+define script CollectSomeWood(NewGodsHand, NewGodsTown)
+define script WaterTheForest(NewGodsHand, NewGodsTown)
+define script ManageOreWithRefinery(NewGodsHand, NewGodsTown)
+
+// Miracle scripts
+define script HealThoseVillagers(NewGodsHand, NewGodsTown, Villager)
+define script WaterTheFields(NewGodsHand, Field, NewGodsTown)
+define script ThrowFireballPlayerTown(NewGodsHand, PlayerTown)
+define script GodProtectTownFromEnemyCreature(NewGodsHand, NewGodsTown, EnemyCreature)
+define script ShieldMiracle(NewGodsHand, NewGodsTown, FireMiracle)
+
+// Town Scripts
+define script BuildMostDesired(NewGodsHand, NewGodsTown)
+define script CreateDiscipleBreeders(NewGodsHand, Villager, NewGodsTown)
+define script CreateDiscipleFarmers(NewGodsHand, Villager, Field)
+define script CreateDiscipleForesters(NewGodsHand, Villager)
+define script MoveVillagersHome(Villager, RandomHome, NewGodsHand)
+define script BuildStorehouse(NewGodsHand, NewGodsTown, Storehouse)
+define script GodHelpConstructHousing(NewGodsHand, NewGodsTown, AbodeUnderConstruction)
+define script FindUnbuilt(NewGodsTown, NewGodsHand, AbodeUnderConstruction)
+define script FindUnbuiltCivics(NewGodsTown, NewGodsHand, ThisBuilding)
+define script GodHelpConstructCivics(NewGodsHand, NewGodsTown, UnderConstructionCivic)
+define script GodHelpRepairBuildings(RandomHome, NewGodsHand, NewGodsTown)
+define script CreateDiscipleWorshippers(NewGodsHand, NewGodsTown, Villager, GodHasRelationsWithPlayer) // If the player is an ally, and an altar or epic exists create some worshippers
+
+// Army Scripts
+define script ProtectTheTown(NewGodsTown, NewGodsHand)
+define script SpawnPlatoon(NewGodsHand, NewGodsTown)
+
+// Alignment Scripts
+define script AlignmentHandling(NewGodsHand, NewGodsTown)
+//define script SwitchToAlignment(WhichAlignment)
+
+// Other Scripts
+define script HandleGodsHand(NewGodsHand)
+define script CheckForPlayerAttack(NewGodsTown)
+define script InfluenceRingRestrictions(NewGodsHand, NewGodsTown)
+define script Animation(NewGodsHand)
+//define script GodAIActionQ // - Combines all the necessary checks into one script, which allows the god to determine its next action.
+
+// Main44RT
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+// God AI - run script for each god you want to create.                                                  //
+//													 //
+// run background script RunGeneralGodAI(NewGodsTown,HandRR,HandGG,HandBB,GodHasRelationsWithPlayer)     //
+//													 //
+// # NewGodsTown - The town you include as the new god's town is the town that he will be attached to.   //
+//	# You may then create as many gods as you want and they will all follow this script, with        //
+//	  town objects and commands apart of the town you selected.				         //
+// # HandColour - set the RGB colour of the hand effect to whatever you specify when you run the script  //
+//		  for each you create. (HandRR, HandGG, HandBB)					         //
+// # GodHasRelations... - either '1' or '0' which ensures if the god is an ally of the player or not.	 //
+//													 //
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+begin script RunGeneralGodAI(NewGodsTown, HandRR, HandGG, HandBB, GodHasRelationsWithPlayer)
+	//Starting Pos for each gods hand
+	NewGodHandPos = marker at {1203,72,439}
+
+	// Add the id of the town that is the enemies
+	// Town buildings Info
+	PlayerTown = get town with id 0
+	TownCentre = get building ABODE_NUMBER_TOWN_CENTRE in NewGodsTown min built 1.0
+	Storehouse = get building ABODE_NUMBER_STORAGE_PIT in NewGodsTown min built 1.0
+	Field = get building ABODE_NUMBER_FIELD in NewGodsTown min built 1.0
+	OreRefinery = get building ABODE_NUMBER_SMELTER in NewGodsTown min built 1.0
+	FoodinField = 0
+	RandomHome = get building ABODE_NUMBER_LAST in NewGodsTown min built 1.0
+	Altar = get building ABODE_NUMBER_ALTAR in NewGodsTown min built 1.0
+
+	// God's Hand and visual effect
+	NewGodsHand = create with angle 0.0 and scale 0.0050 SCRIPT_OBJECT_TYPE_FEATURE FEATURE_INFO_HAND_POSED at {TownCentre}
+	HandVisual = create visual effect VISUAL_EFFECT_HAND on NewGodsHand time -1
+
+	// Resource Info
+	FoodTotal = get resource RESOURCE_TYPE_FOOD in Storehouse
+	WoodTotal = get resource RESOURCE_TYPE_WOOD in Storehouse
+	OreTotal = get resource RESOURCE_TYPE_ORE in Storehouse
+	WoodCollectTimer = 0
+
+	OreRock1 = create SCRIPT_OBJECT_TYPE_MOBILE_STATIC MOBILE_STATIC_INFO_ORE_ROCK_MEDIUM at {1028,52,1313}
+	OreRock2 = create SCRIPT_OBJECT_TYPE_MOBILE_STATIC MOBILE_STATIC_INFO_ORE_ROCK_MEDIUM at {1329,57.48,518}
+
+	// Villager Info
+	Villager = 0
+	DiscipleFarmerTimer = 0
+	OreManagerTimer = 0
+	DiscipleForesterTimer = 0
+	DiscipleWorshipperTimer = 0
+	CheckForNewBuildingsTimer = 0
+
+	// Other Info
+	Time = 0
+	GreekPlatoons = variable constant from PLATOON_INFO_GREEK_MELEE_1 to PLATOON_INFO_GREEK_RANGED_10
+	PlayerPlatoon = get platoon of type constant GreekPlatoons nearest {TownCentre} radius 35.00
+	GodRelationsInfluence = 0
+	NewGodsTownPlayer = get NewGodsTown player
+	GodsInfluence = get player NewGodsTownPlayer influence at {NewGodsTown}
+
+	Creatures = variable constant from CREATURE_TYPE_APE to CREATURE_TYPE_GORILLA
+	EnemyCreature = get SCRIPT_OBJECT_TYPE_CREATURE constant Creatures at {NewGodsTown} radius 10.00
+
+	Houses = variable constant from ABODE_NUMBER_A to ABODE_NUMBER_E
+	Civics = variable constant from ABODE_NUMBER_ALTAR to ABODE_NUMBER_BATHHOUSE
+	PlannedCivics = get random abode of type constant Civics in town NewGodsTown
+	ChangeTowns = create timer for 140 seconds
+	UnderConstructionHouse = variable constant PERCENTBUILT of Houses
+	UnderConstructionCivic = 0
+	NothingToDo = 0
+	TownWoodDesire = 0
+	nCount = 0
+	AbodeUnderConstruction = 0
+	ThisBuilding = 0
+	NewGodsTownDesire = 0
+	FireMiracle = 0
+	HostileMiracles = variable constant from MIRACLE_TYPE_FIRE to MIRACLE_TYPE_STORM
+start
+
+	// Set the hand's visual effect for each type of God.
+	set HandVisual colour red HandRR green HandGG blue HandBB
+
+	// Run the scripts to control the immersion of the god's hand in the world.
+	attach NewGodsHand to NewGodsTown
+	run background script HandleGodsHand(NewGodsHand)
+	run background script CheckForPlayerAttack(NewGodsTown)
+	run background script InfluenceRingRestrictions(NewGodsHand, NewGodsTown)
+	run background script AlignmentHandling(NewGodsHand, NewGodsTown)
+	run background script Animation(NewGodsHand)
+	//run background script GodRelationshipScriptTrigger(GodHasRelationsWithPlayer, NewGodsHand, NewGodsTown)
+
+	// Timers
+	WoodCollectTimer = create timer for 180 seconds
+	CheckForNewBuildingsTimer = create timer for 25 seconds
+	SpawnTimer = create timer for 60 seconds
+	DiscipleFarmerTimer = create timer for 120 seconds
+	DiscipleForesterTimer = create timer for 90 seconds
+	DiscipleWorshipperTimer = create timer for 75 seconds
+	OreManagerTimer = create timer for 140 seconds
+
+	// Ore Mine Pos - Set the position of each ore mine in your land in collaboration with each god
+	  OreMine1 = marker at {Mine1X, Mine1Y, Mine1Z}
+	  OreMine2 = marker at {Mine2X, Mine2Y, Mine2Z}
+
+	Time = get game time
+
+// All the scripts used to fill up the actions of each god created, with some actions differing for the Goddess
+begin loop
+   	ALTITUDE of NewGodsHand = 14.00
+
+	if get building STOREHOUSE in NewGodsTown min built 1.0 not exists and UnderAttack == 0
+		run script BuildStorehouse(NewGodsHand, NewGodsTown, Storehouse)
+	end if
+
+	/*if PERCENTBUILT of RandomHome < 1.00
+		run script GodHelpRepairBuildings(RandomHome, NewGodsHand, NewGodsTown)
+	end if*/
+
+ 	//####// Resource Actions
+	NewGodsTownDesire = get NewGodsTown desire TOWN_DESIRE_FOR_FOOD
+       	if NewGodsTownDesire > 0.3 and UnderAttack == 0
+	FoodinField = get resource RESOURCE_TYPE_FOOD in Field
+	    if FoodinField < 200
+		run script WaterTheFields(NewGodsHand, Field, NewGodsTown)
+	    else	     
+		run script FoodGatherAction(NewGodsHand, NewGodsTown)
+	    end if
+	end if
+
+	NewGodsTownDesire = get NewGodsTown desire TOWN_DESIRE_FOR_WOOD
+	if NewGodsTownDesire > 0.3 and UnderAttack == 0 
+		run script WoodGatherAction(NewGodsHand, NewGodsTown)
+	end if
+
+	NewGodsTownDesire = get NewGodsTown desire TOWN_DESIRE_FOR_ORE
+       	if NewGodsTownDesire > 0.3 and UnderAttack == 0 //or get NewGodsTown desire TOWN_DESIRE_FOR_ORE > 0.65 and UnderAttack == 0 
+		run script OreGatherAction(NewGodsHand, NewGodsTown)
+	end if
+	//####// End Resource Actions
+
+	//New Buildings
+	run script FindUnbuilt(NewGodsTown, NewGodsHand, AbodeUnderConstruction)
+
+	run script FindUnbuiltCivics(NewGodsTown, NewGodsHand, ThisBuilding)
+
+	//####// Gods recognizing Villagers from the town
+	Villager = get living villager at {NewGodsTown} radius 200.00
+	//####// End Villagers
+
+	//####// Day & Night Bases
+	// Nighttime
+	if Time >= 21.00 and Time <= 6.00 and UnderAttack == 0
+		run script MoveVillagersHome(Villager, RandomHome, NewGodsHand)
+	end if
+	//####// End Day & Night Base actions
+
+	//####// Miracles
+	//HEAL//
+	if HEALTH of Villager < 1.0 and UnderAttack == 0
+		run script HealThoseVillagers(NewGodsHand, NewGodsTown, Villager)
+	end if
+
+	//WATER//
+	FoodinField = get resource RESOURCE_TYPE_FOOD in Field
+	if FoodinField < 200 and UnderAttack == 0
+		run script WaterTheFields(NewGodsHand, Field, NewGodsTown)
+	end if
+
+	//SHIELD//
+	if player 0 cast miracle MIRACLE_TYPE_FIRE near {NewGodsTown} radius 100 and UnderAttack == 0
+	    run script ShieldMiracle(NewGodsHand, NewGodsTown, FireMiracle)
+	end if	
+
+	//FIRE//
+	//if hand position near {NewGodsHand} radius 10.00 and UnderAttack == 0 and GodHasRelationsWithPlayer == 0
+	//	run script ThrowFireballPlayerTown(NewGodsHand, PlayerTown)
+	//end if
+	//####// End Miracles
+
+	//####// Desires
+	if get NewGodsTown desire TOWN_DESIRE_TO_BUILD > 0.4 and UnderAttack == 0
+		run script BuildMostDesired(NewGodsHand, NewGodsTown)
+	end if
+
+	if get SpawnTimer time remaining == 0.00 and UnderAttack == 0
+		run script SpawnPlatoon(NewGodsHand, NewGodsTown)
+	  		set SpawnTimer time to 150 seconds
+	end if
+ 	//####// End Desires
+
+	//####// Disciples
+	if get number of disciple VILLAGER_DISCIPLE_BREEDER in town NewGodsTown != 6 and UnderAttack == 0
+		run script CreateDiscipleBreeders(NewGodsHand, Villager, NewGodsTown)
+	end if
+
+	if get number of disciple VILLAGER_DISCIPLE_FARMER in town NewGodsTown != 6 and UnderAttack == 0
+		run script CreateDiscipleFarmers(NewGodsHand, Villager, Field)
+			set DiscipleFarmerTimer time to 130 seconds
+	end if
+
+	if get number of disciple VILLAGER_DISCIPLE_FORESTER in town NewGodsTown != 6 and UnderAttack == 0
+		run script CreateDiscipleForesters(NewGodsHand, Villager)
+			set DiscipleForesterTimer time to 90 seconds
+	end if
+
+	if Altar exists
+	   if get number of disciple VILLAGER_DISCIPLE_WORSHIP in town NewGodsTown != 10 and UnderAttack == 0
+	     if GodHasRelationsWithPlayer == 1
+		run script CreateDiscipleWorshippers(NewGodsHand, NewGodsTown, Villager, GodHasRelationsWithPlayer)
+			set DiscipleWorshipperTimer time to 75 seconds
+	     end if
+	   end if
+	end if
+ 	//####// End Disciples
+end loop
+end script RunGeneralGodAI
+
+begin script RunGodessAI(NewGodsTown, HandRR, HandGG, HandBB, GodHasRelationsWithPlayer)
+	//Starting Pos for each gods hand
+	NewGodHandPos = marker at {1203,72,439}
+
+	// Add the id of the town that is the enemies
+	// Town buildings Info
+	PlayerTown = get town with id 0
+	TownCentre = get building ABODE_NUMBER_TOWN_CENTRE in NewGodsTown min built 1.0
+	Storehouse = get building ABODE_NUMBER_STORAGE_PIT in NewGodsTown min built 1.0
+	Field = get building ABODE_NUMBER_FIELD in NewGodsTown min built 1.0
+	OreRefinery = get building ABODE_NUMBER_SMELTER in NewGodsTown min built 1.0
+	FoodinField = get resource RESOURCE_TYPE_FOOD in Field
+	RandomHome = get random home in town NewGodsTown
+	Altar = get building ALTAR in NewGodsTown min built 1.0
+
+	// God's Hand and visual effect
+	NewGodsHand = create with angle 0.0 and scale 0.0085 FEATURE FEATURE_INFO_HAND_POSED at {TownCentre}
+	HandVisual = create visual effect VISUAL_EFFECT_HAND on NewGodsHand time -1
+
+	// Resource Info
+	FoodTotal = get resource RESOURCE_TYPE_FOOD in Storehouse
+	WoodTotal = get resource RESOURCE_TYPE_WOOD in Storehouse
+	OreTotal = get resource RESOURCE_TYPE_ORE in Storehouse
+	WoodCollectTimer = 0
+
+	OreRock1 = create MOBILESTATIC MOBILE_STATIC_INFO_ORE_ROCK_MEDIUM at {1028,52,1313}
+	OreRock2 = create MOBILESTATIC MOBILE_STATIC_INFO_ORE_ROCK_MEDIUM at {1329,57.48,518}
+
+	// Villager Info
+	Villager = 0
+	DiscipleFarmerTimer = 0
+	OreManagerTimer = 0
+	DiscipleForesterTimer = 0
+	DiscipleWorshipperTimer = 0
+
+	// Other Info
+	Time = 0
+	GreekPlatoons = variable constant from PLATOON_INFO_GREEK_MELEE_1 to PLATOON_INFO_GREEK_RANGED_10
+	PlayerPlatoon = get platoon of type constant GreekPlatoons nearest {TownCentre} radius 35.00
+	GodRelationsInfluence = 0
+	NewGodsTownPlayer = get NewGodsTown player
+	GodsInfluence = get player NewGodsTownPlayer influence at {NewGodsTown}
+
+	Creatures = variable constant from CREATURE_TYPE_APE to CREATURE_TYPE_GORILLA
+	EnemyCreature = get CREATURE constant Creatures at {GodsInfluence} radius 2.00
+
+	Housing = variable constant from ABODE_NUMBER_A to ABODE_NUMBER_E
+	Civics = variable constant from ABODE_NUMBER_ALTAR to ABODE_NUMBER_BATHHOUSE
+	PlannedHouses = get random abode of type constant Housing in town NewGodsTown
+	PlannedCivics = get random abode of type constant Civics in town NewGodsTown
+	ChangeTowns = create timer for 120 seconds
+	UnderConstructionHouse = 0
+	nCount = 0
+	AbodeUnderConstruction = get building HOUSEA in NewGodsTown max built 0.5
+start
+	// Set the hand's visual effect for each type of God.
+	set HandVisual colour red HandRR green HandGG blue HandBB
+
+	// Run the scripts to control the immersion of the god's hand in the world.
+	run background script HandleGodsHand(NewGodsHand)
+	run background script CheckForPlayerAttack(NewGodsTown)
+	run background script InfluenceRingRestrictions(NewGodsHand, NewGodsTown)
+	run background script AlignmentHandling(NewGodsHand, NewGodsTown)
+
+	WoodCollectTimer = create timer for 180 seconds
+	SpawnTimer = create timer for 60 seconds
+	DiscipleFarmerTimer = create timer for 100 seconds
+	DiscipleForesterTimer = create timer for 130 seconds
+	DiscipleWorshipperTimer = create timer for 75 seconds
+
+	set town NewGodsTown desire for TOWN_DESIRE_TO_BUILD to 0.6
+
+	// Ore Mine Pos - Set the position of each ore mine in your land in collaboration with each god
+	  OreMine1 = marker at {Mine1X, Mine1Y, Mine1Z}
+	  OreMine2 = marker at {Mine2X, Mine2Y, Mine2Z}
+	  OreMine3 = marker at {Mine3X, Mine3Y, Mine3Z}
+
+begin loop
+
+	if get building STOREHOUSE in NewGodsTown min built 1.0 not exists
+		run script BuildStorehouse(NewGodsHand, NewGodsTown, Storehouse)
+	end if
+
+	//if OreRefinery not exists and get OreManagerTimer time remaining == 0.00
+		//run script ManageOreWithRefinery(NewGodsHand, NewGodsTown, OreRefinery)
+	//end if
+
+	if PlannedHouses exists and PERCENTBUILT of PlannedHouses < 1.00 or PlannedCivics exists and PERCENTBUILT of PlannedCivics < 1.00
+		run script GodHelpConstructHousing(NewGodsHand, NewGodsTown, AbodeUnderConstruction)
+	end if
+
+	Time = get game time
+   	ALTITUDE of NewGodsHand = 12.00
+
+ 	//####// Resource Actions
+       	if get resource RESOURCE_TYPE_FOOD in Storehouse < 5000 and UnderAttack == 0 or get NewGodsTown desire TOWN_DESIRE_FOR_FOOD > 0.7 and UnderAttack == 0 
+		run script FoodGatherAction(NewGodsHand, NewGodsTown)
+	 		wait 3 seconds
+	end if
+
+	if get resource RESOURCE_TYPE_WOOD in Storehouse < 5000 and UnderAttack == 0 or get NewGodsTown desire TOWN_DESIRE_FOR_WOOD > 0.7 and UnderAttack == 0 
+		run script WoodGatherAction(NewGodsHand, NewGodsTown)
+   		wait 3 seconds
+	end if
+
+       	if get resource RESOURCE_TYPE_ORE in Storehouse < 5000 and UnderAttack == 0 or get NewGodsTown desire TOWN_DESIRE_FOR_ORE > 0.7 and UnderAttack == 0 
+		run script OreGatherAction(NewGodsHand, NewGodsTown)
+   			wait 3 seconds
+		set OreManagerTimer time to 90 seconds
+	end if
+
+	if get WoodCollectTimer time remaining == 0.00 and UnderAttack == 0
+		run script CollectSomeWood(NewGodsHand, NewGodsTown)
+	    		wait 3 seconds
+		run script WaterTheForest(NewGodsHand, NewGodsTown)
+	    		wait 2 seconds
+     		set WoodCollectTimer time to 180 seconds
+	end if
+	//####// End Resource Actions
+
+	//####// Gods recognizing Villagers from the town
+	Villager = get living villager at {NewGodsTown} radius 200.00
+	//####// End Villagers
+
+	//####// Day & Night Bases
+	// Nighttime
+	if (Time > 21.00 or Time < 6.00) and UnderAttack == 0
+		run script MoveVillagersHome(Villager, RandomHome, NewGodsHand)
+	end if
+	//####// End Day & Night Bases
+
+	//####// Miracles
+	//HEAL//
+	//if HEALTH of Villager <= 0.80 and UnderAttack == 0
+	//	run script HealThoseVillagers(NewGodsHand, NewGodsTown, Villager)
+	//end if
+
+	//WATER//
+	if FoodinField <= 2500 and UnderAttack == 0
+		run script WaterTheFields(NewGodsHand, Field, NewGodsTown)
+	end if
+
+	//FIRE//
+	if hand position near {NewGodsHand} radius 10.00 and UnderAttack == 0 and GodHasRelationsWithPlayer == 0
+		run script ThrowFireballPlayerTown(NewGodsHand, PlayerTown)
+	end if
+
+	//ATTACK//
+	if town NewGodsTown is under takeover from player 0 and GodHasRelationsWithPlayer == 0
+		run script ProtectTheTown(NewGodsTown, NewGodsHand)
+	end if
+
+	if EnemyCreature exists and get EnemyCreature player != NewGodsTownPlayer and UnderAttack == 0
+		run script GodProtectTownFromEnemyCreature(NewGodsHand, NewGodsTown, EnemyCreature)
+	end if
+
+	if GodHasRelationsWithPlayer == 1
+   	disable town NewGodsTown can be taken by force
+      		if GodRelationsInfluence not exists
+	  		GodRelationsInfluence = create influence at {NewGodsTown} radius NewGodsTown
+      		end if
+	end if
+	//####// End Miracles
+
+	//####// Desires
+	if get NewGodsTown desire TOWN_DESIRE_TO_BUILD > 0.4 and UnderAttack == 0
+		run script BuildMostDesired(NewGodsHand, NewGodsTown)
+	end if
+
+	if get SpawnTimer time remaining == 0.00 and UnderAttack == 0
+		run script SpawnPlatoon(NewGodsHand, NewGodsTown)
+	  		set SpawnTimer time to 150 seconds
+	end if
+ 	//####// End Desires
+
+	//####// Disciples
+	if get number of disciple VILLAGER_DISCIPLE_BREEDER in town NewGodsTown < 6 and UnderAttack == 0
+		run script CreateDiscipleBreeders(NewGodsHand, Villager, NewGodsTown)
+	end if
+
+	if get number of disciple VILLAGER_DISCIPLE_FARMER in town NewGodsTown < 6 and UnderAttack == 0
+		run script CreateDiscipleFarmers(NewGodsHand, Villager, Field)
+			set DiscipleFarmerTimer time to 130 seconds
+	end if
+
+	if UnderAttack == 0 and get number of disciple VILLAGER_DISCIPLE_FORESTER in town NewGodsTown < 6
+		run script CreateDiscipleForesters(NewGodsHand, Villager)
+			set DiscipleForesterTimer time to 90 seconds
+	end if
+
+	if Altar exists
+	   if UnderAttack == 0 and get number of disciple VILLAGER_DISCIPLE_WORSHIP in town NewGodsTown < 10
+	     if GodHasRelationsWithPlayer == 1
+		run script CreateDiscipleWorshippers(NewGodsHand, NewGodsTown, Villager, GodHasRelationsWithPlayer)
+			set DiscipleWorshipperTimer time to 75 seconds
+	     end if
+	   end if
+	end if
+ 	//####// End Disciples
+end loop
+end script RunGodessAI
+
+begin script HandleGodsHand(NewGodsHand)
+start
+begin loop
+	enable NewGodsHand moveable
+	enable NewGodsHand indestructible
+	disable NewGodsHand pickup
+	disable NewGodsHand can be fisted
+end loop
+end script HandleGodsHand
+
+// FoodGath21A
+begin script FoodGatherAction(NewGodsHand, NewGodsTown)
+	Field = get building ABODE_NUMBER_FIELD in NewGodsTown min built 1.0
+	Storehouse = get building ABODE_NUMBER_STORAGE_PIT in NewGodsTown min built 1.0
+	FoodEffectUp = 0
+	FoodEffectDown = 0
+	HowMuchFood = 0
+	FoodModel = 0
+start
+	ALTITUDE of NewGodsHand = 12.00
+	     wait 1 second
+	   while {NewGodsHand} not near {Field} radius 6.00
+		ALTITUDE of NewGodsHand = 12.00
+		set NewGodsHand velocity heading ({Field} + {0,(14 + 1.0),0}) speed 75.00
+		  wait 0.05 seconds
+	   end while
+		HowMuchFood = get resource RESOURCE_TYPE_FOOD in Field
+		ALTITUDE of NewGodsHand = 12.00
+		wait 0.5 seconds
+		FoodEffectUp = create visual effect VISUAL_EFFECT_RESOURCE_GRAIN_DOWN at {NewGodsHand}+{0,-2,-3} time -1
+		   if camera position near {NewGodsHand} radius 100.00
+			play sound "PICKUPFOOD" at {NewGodsHand} with volume 1.0 pitch 0.0
+		   end if
+		wait 1.8 seconds
+		set field Field height to 0.0
+			ZANGLE of FoodModel = 90.00
+		    stop visual effect FoodEffectUp
+		        FoodEffectUp = 0
+			ZANGLE of NewGodsHand = 90.00
+		    stop sound "PICKUPFOOD"
+		wait 0.5 seconds
+	while {NewGodsHand} not near {Storehouse} radius 6.00
+		ALTITUDE of NewGodsHand = 12.00
+		set NewGodsHand velocity heading ({Storehouse} + {0,(14 + 1.0),0}) speed 75.00
+	end while
+	     ALTITUDE of NewGodsHand = 12.00
+	   wait 0.5 seconds
+		FoodEffectDown = create visual effect VISUAL_EFFECT_RESOURCE_GRAIN_DOWN at {NewGodsHand}+{0,-2,-3} time 3
+		    FoodModel = 0
+			wait 1 second
+		    stop visual effect FoodEffectDown
+		    FoodEffectDown = 0
+		add resource RESOURCE_TYPE_FOOD HowMuchFood to Storehouse
+	wait 1 second
+		ALTITUDE of NewGodsHand = 12.00
+end script FoodGatherAction
+
+// WoodGath21A
+begin script WoodGatherAction(NewGodsHand, NewGodsTown)
+	Storehouse = get building ABODE_NUMBER_STORAGE_PIT in NewGodsTown min built 1.0
+	TreeToGather = get SCRIPT_OBJECT_TYPE_TREE at {NewGodsTown} radius 100.00
+start
+    if TreeToGather exists
+       wait 1 second
+	 ALTITUDE of NewGodsHand = 10.00
+	   while {NewGodsHand} not near {TreeToGather} radius 2.00
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 10.00
+		set NewGodsHand velocity heading {TreeToGather} speed 80.00
+	   end while
+		ALTITUDE of NewGodsHand = 10.00
+			wait 0.5 seconds
+		   set TreeToGather position to {NewGodsHand}+{0,-2,-3}
+		   if camera position near {NewGodsHand} radius 100.00
+			play sound "TREEBREAK2" at {NewGodsHand} with volume 1.0 pitch 0.0
+		   end if
+			wait 1 second
+		stop sound "TREEBREAK2"
+			wait 0.3 seconds
+	while {NewGodsHand} not near {Storehouse} radius 1.00
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 90.00
+		ANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 10.00
+		set TreeToGather position to {NewGodsHand}+{0,-2,-3}
+		set NewGodsHand velocity heading {Storehouse} speed 80.00
+	end while
+	       ALTITUDE of NewGodsHand = 12.00
+	     wait 0.5 seconds
+		set TreeToGather target {Storehouse} time 2.00
+	wait 2 seconds
+		ALTITUDE of NewGodsHand = 10.00
+    end if
+end script WoodGatherAction
+
+begin script CollectSomeWood(NewGodsHand, NewGodsTown)
+	Storehouse = get building STOREHOUSE in NewGodsTown min built 1.0
+	Tree1 = get TREE SPRUCE at {NewGodsTown} radius 30.00
+start
+   if Tree1 exists
+	ALTITUDE of NewGodsHand = 12.00
+		wait 1 second
+	while {NewGodsHand} not near {Tree1} radius 2.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 12.00
+		set NewGodsHand velocity heading {Tree1} speed 60.00
+	end while
+		ALTITUDE of NewGodsHand = 7.00
+			wait 1 second
+		ZANGLE of NewGodsHand = 90.00
+			wait 2 seconds
+		while {NewGodsHand} not near {Storehouse} radius 1.00
+			XANGLE of NewGodsHand = 0.00
+			ZANGLE of NewGodsHand = 0.00
+			ANGLE of NewGodsHand = 0.00
+			ALTITUDE of NewGodsHand = 12.00
+			set Tree1 position to {NewGodsHand}
+			set NewGodsHand velocity heading {Storehouse} speed 70.00
+		end while
+			ALTITUDE of NewGodsHand = 15.00
+			ZANGLE of NewGodsHand = 0.00
+			    wait 1 second
+			set Tree1 target {Storehouse} time 2.00
+		wait 2 seconds
+			ALTITUDE of NewGodsHand = 10.00
+    elsif Tree1 not exists
+		Tree1 = get TREE CEDAR at {NewGodsTown} radius 30.00
+	ALTITUDE of NewGodsHand = 12.00
+		wait 1 second
+	while {NewGodsHand} not near {Tree1} radius 2.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 12.00
+		set NewGodsHand velocity heading {Tree1} speed 60.00
+	end while
+		ALTITUDE of NewGodsHand = 7.00
+			wait 1 second
+		ZANGLE of NewGodsHand = 90.00
+			wait 2 seconds
+		while {NewGodsHand} not near {Storehouse} radius 1.00
+			XANGLE of NewGodsHand = 0.00
+			ZANGLE of NewGodsHand = 0.00
+			ANGLE of NewGodsHand = 0.00
+			ALTITUDE of NewGodsHand = 12.00
+			set Tree1 position to {NewGodsHand}
+			set NewGodsHand velocity heading {Storehouse} speed 70.00
+		end while
+
+			ALTITUDE of NewGodsHand = 15.00
+			ZANGLE of NewGodsHand = 0.00
+			    wait 1 second
+			set Tree1 target {Storehouse} time 2.00
+		wait 2 seconds
+			ALTITUDE of NewGodsHand = 10.00
+	    wait 1 second
+   end if
+end script CollectSomeWood
+
+// OreGath21A
+// Each Ore Mine used here has been declared in the main script with pos stated by the X, Y, Z pos of that mine as global variables
+begin script OreGatherAction(NewGodsHand, NewGodsTown)
+	OreRock = get MOBILESTATIC MOBILE_STATIC_INFO_ORE_ROCK at {NewGodsTown} radius 200.00
+	OreRock1 = 0
+	Storehouse = get building STOREHOUSE in NewGodsTown min built 1.00
+	OreEffectUp = 0
+	OreEffectDown = 0
+start
+  if {OreMine1} not near {NewGodsTown} radius 100.00
+	if {OreMine2} near {NewGodsTown} radius 100.00
+	     wait 0.8 seconds
+	   while {NewGodsHand} not near {OreMine2} radius 1.00
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 14.00
+		set NewGodsHand velocity heading {OreMine2} speed 80.00
+	   end while
+	       ALTITUDE of NewGodsHand = 12.00
+			wait 1 second
+		   play sound "PICKUPORE" at {NewGodsHand} with volume 1.0 pitch 0.0
+		OreEffectUp = create visual effect VISUAL_EFFECT_RESOURCE_ORE_DOWN at {NewGodsHand}+{0,-2,-3} time -1
+			wait 1 second
+		stop sound "PICKUPORE"
+		stop visual effect OreEffectUp
+		    ALTITUDE of NewGodsHand = 10.00
+			wait 1 second
+	while {NewGodsHand} not near {Storehouse} radius 1.00
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 10.00
+		set OreRock position to {NewGodsHand}+{0,-2,-3}
+		set NewGodsHand velocity heading {Storehouse} speed 80.00
+	end while
+	    ALTITUDE of NewGodsHand = 12.00
+		OreEffectDown = create visual effect VISUAL_EFFECT_RESOURCE_ORE_DOWN at {NewGodsHand}+{0,-2,-3} time -1
+			wait 1 second
+		add resource ORE 750 to Storehouse
+	wait 0.6 seconds
+	   stop visual effect OreEffectDown
+	      ALTITUDE of NewGodsHand = 15.00
+        elsif {OreMine3} near {NewGodsTown} radius 100.00
+	     wait 0.8 seconds
+	   while {NewGodsHand} not near {OreMine3} radius 1.00
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 15.00
+		set NewGodsHand velocity heading {OreMine3} speed 70.00
+	   end while
+		ALTITUDE of NewGodsHand = 12.00
+			wait 1 second
+		   play sound "PICKUPORE" at {NewGodsHand} with volume 1.0 pitch 0.0
+		OreEffectUp = create visual effect VISUAL_EFFECT_RESOURCE_ORE_DOWN at {NewGodsHand}+{0,-2,-3} time -1
+			wait 2 seconds
+		stop sound "PICKUPORE"
+		stop visual effect OreEffectUp
+	while {NewGodsHand} not near {Storehouse} radius 1.00
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 15.00
+		set NewGodsHand velocity heading {Storehouse} speed 80.00
+	end while
+	     ALTITUDE of NewGodsHand = 15.00
+		OreEffectDown = create visual effect VISUAL_EFFECT_RESOURCE_ORE_DOWN at {NewGodsHand}+{0,-2,-3} time -1
+			wait 0.8 seconds
+		add resource ORE 750 to Storehouse
+	wait 0.8 seconds
+	   stop visual effect OreEffectDown
+		ALTITUDE of NewGodsHand = 10.00
+        end if
+  elsif {OreMine2} not near {NewGodsTown} radius 100.00
+	if {OreMine1} near {NewGodsTown} radius 100.00
+	     wait 1 second
+	   while {NewGodsHand} not near {OreMine1} radius 1.00
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 14.00
+		set NewGodsHand velocity heading {OreMine1} speed 70.00
+	   end while
+	       ALTITUDE of NewGodsHand = 12.00
+			wait 1 second
+		   play sound "PICKUPORE" at {NewGodsHand} with volume 1.0 pitch 0.0
+		OreEffectUp = create visual effect VISUAL_EFFECT_RESOURCE_ORE_DOWN at {NewGodsHand}+{0,-2,-3} time -1
+			wait 1 second
+		stop sound "PICKUPORE"
+		stop visual effect OreEffectUp
+		    ALTITUDE of NewGodsHand = 10.00
+			wait 0.8 seconds
+	while {NewGodsHand} not near {Storehouse} radius 1.00
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 10.00
+		set OreRock position to {NewGodsHand}+{0,-2,-3}
+		set NewGodsHand velocity heading {Storehouse} speed 60.00
+	end while
+	    ALTITUDE of NewGodsHand = 12.00
+		OreEffectDown = create visual effect VISUAL_EFFECT_RESOURCE_ORE_DOWN at {NewGodsHand}+{0,-2,-3} time -1
+			wait 0.8 seconds
+		add resource ORE 750 to Storehouse
+	wait 0.8 seconds
+	   stop visual effect OreEffectDown
+	      ALTITUDE of NewGodsHand = 15.00
+        elsif {OreMine3} near {NewGodsTown} radius 100.00
+	     wait 1 second
+	   while {NewGodsHand} not near {OreMine3} radius 1.00
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 15.00
+		set NewGodsHand velocity heading {OreMine3} speed 70.00
+	   end while
+		ALTITUDE of NewGodsHand = 12.00
+			wait 1 second
+		   play sound "PICKUPORE" at {NewGodsHand} with volume 1.0 pitch 0.0
+		OreEffectUp = create visual effect VISUAL_EFFECT_RESOURCE_ORE_DOWN at {NewGodsHand}+{0,-2,-3} time -1
+			wait 2 seconds
+		stop sound "PICKUPORE"
+		stop visual effect OreEffectUp
+	while {NewGodsHand} not near {Storehouse} radius 1.00
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 15.00
+		set NewGodsHand velocity heading {Storehouse} speed 70.00
+	end while
+	     ALTITUDE of NewGodsHand = 15.00
+		OreEffectDown = create visual effect VISUAL_EFFECT_RESOURCE_ORE_DOWN at {NewGodsHand}+{0,-2,-3} time -1
+			wait 2 seconds
+		add resource ORE 750 to Storehouse
+	wait 3 seconds
+	   stop visual effect OreEffectDown
+		ALTITUDE of NewGodsHand = 10.00
+        end if
+  elsif {OreMine3} not near {NewGodsTown} radius 100.00
+	if {OreMine1} near {NewGodsTown} radius 100.00
+	     wait 1 second
+	   while {NewGodsHand} not near {OreMine1} radius 1.00
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 15.00
+		set NewGodsHand velocity heading {OreMine1} speed 70.00
+	   end while
+		ALTITUDE of NewGodsHand = 12.00
+			wait 1 second
+		   play sound "PICKUPORE" at {NewGodsHand} with volume 1.0 pitch 0.0
+		OreEffectUp = create visual effect VISUAL_EFFECT_RESOURCE_ORE_DOWN at {NewGodsHand}+{0,-2,-3} time -1
+			wait 2 seconds
+		stop sound "PICKUPORE"
+		stop visual effect OreEffectUp
+	while {NewGodsHand} not near {Storehouse} radius 1.00
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 15.00
+		set NewGodsHand velocity heading {Storehouse} speed 70.00
+	end while
+	     ALTITUDE of NewGodsHand = 15.00
+		OreEffectDown = create visual effect VISUAL_EFFECT_RESOURCE_ORE_DOWN at {NewGodsHand}+{0,-2,-3} time -1
+			wait 2 seconds
+		add resource ORE 750 to Storehouse
+	wait 3 seconds
+	   stop visual effect OreEffectDown
+		ALTITUDE of NewGodsHand = 10.00
+        elsif {OreMine2} near {NewGodsTown} radius 100.00
+	     wait 1 second
+	   while {NewGodsHand} not near {OreMine2} radius 1.00
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 15.00
+		set NewGodsHand velocity heading {OreMine2} speed 70.00
+	   end while
+		ALTITUDE of NewGodsHand = 12.00
+			wait 1 second
+		   play sound "PICKUPORE" at {NewGodsHand} with volume 1.0 pitch 0.0
+		OreEffectUp = create visual effect VISUAL_EFFECT_RESOURCE_ORE_DOWN at {NewGodsHand}+{0,-2,-3} time -1
+			wait 2 seconds
+		stop sound "PICKUPORE"
+		stop visual effect OreEffectUp
+	while {NewGodsHand} not near {Storehouse} radius 1.00
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 15.00
+		set NewGodsHand velocity heading {Storehouse} speed 70.00
+	end while
+	     ALTITUDE of NewGodsHand = 15.00
+		OreEffectDown = create visual effect VISUAL_EFFECT_RESOURCE_ORE_DOWN at {NewGodsHand}+{0,-2,-3} time -1
+			wait 2 seconds
+		add resource ORE 750 to Storehouse
+	wait 3 seconds
+	   stop visual effect OreEffectDown
+		ALTITUDE of NewGodsHand = 10.00
+        end if
+  end if
+end script OreGatherAction
+
+// HealTV291278
+begin script HealThoseVillagers(NewGodsHand, NewGodsTown, Villager)
+	HealMiracleEffect = 0
+	HealRock = 0
+	HealMiracle = 0
+	MiracleChargingEffect = 0
+	Altar = get building ALTAR in NewGodsTown min built 1.0
+start
+if Altar exists
+	ALTITUDE of NewGodsHand = 10.00
+		wait 1 second
+	while {NewGodsHand} not near {Altar} radius 2.00
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 10.00
+		set NewGodsHand velocity heading {Altar} speed 70.00
+	end while
+	   ALTITUDE of NewGodsHand = 8.00
+		wait 1 second
+	   MiracleChargingEffect = create visual effect VISUAL_EFFECT_MIRACLE_CHARGE at {NewGodsHand}+{0,-2,-3} time 12
+		wait 12 seconds
+	   play string sound "PickingSpell"
+	   stop visual effect MiracleChargingEffect
+		wait 1 second
+	ALTITUDE of NewGodsHand = 10.00
+		wait 1 second
+	while {NewGodsHand} not near {Villager} radius 3.00
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 10.00
+		ALTITUDE of HealMiracleEffect = 8.00
+		set HealMiracleEffect velocity heading {Villager} speed 70.00
+		set NewGodsHand velocity heading {Villager} speed 70.00
+	end while
+	   ALTITUDE of NewGodsHand = 6.00
+		wait 3 seconds
+	   HealMiracleEffect = create visual effect HEALMIRACLE at {NewGodsHand}+{0,-2,-3} time -1
+		wait 3 seconds
+	   stop visual effect HealMiracleEffect
+	   	HealMiracle = make player 1 throw miracle MIRACLE_TYPE_HEAL from {NewGodsHand}+{0,-7,-3} heading ({Villager} - {NewGodsHand}+{0,-7,-3})
+	   wait 5 seconds
+		delete HealMiracle
+		HealMiracle = 0
+		    wait 1 second
+	     ALTITUDE of NewGodsHand = 10.00
+	   wait 2 seconds
+else
+	while {NewGodsHand} not near {Villager} radius 3.00
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 10.00
+		set NewGodsHand velocity heading {Villager} speed 70.00
+	end while
+	   ALTITUDE of NewGodsHand = 6.00
+	   HealMiracleEffect = create visual effect HEALMIRACLE at {NewGodsHand}+{0,-2,-3} time -1
+		wait 3 seconds
+	   stop visual effect HealMiracleEffect
+	   	HealMiracle = make player 1 throw miracle MIRACLE_TYPE_HEAL from {NewGodsHand}+{0,-7,-3} heading ({Villager} - {NewGodsHand}+{0,-7,-3})
+	   wait 5 seconds
+		delete HealMiracle
+		HealMiracle = 0
+		    wait 1 second
+	     ALTITUDE of NewGodsHand = 10.00
+	   wait 2 seconds
+end if
+end script HealThoseVillagers
+
+// WATFIL2321KBB
+begin script WaterTheFields(NewGodsHand, Field, NewGodsTown)
+	TownCentre = get building TOWNCENTRE in NewGodsTown min built 1.0
+	WaterMiracleEffect = 0
+	WaterMiracle = 0
+	WaterRock = 0
+	RandomChoice = 0
+	MiracleChargingEffect = 0
+	Altar = get building ALTAR in NewGodsTown min built 1.0
+
+	Throw = 1
+	Pour = 2
+start
+	RandomChoice = number from Throw to Pour
+
+	while {NewGodsHand} not near {Field} radius 1.00
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 10.00
+		set NewGodsHand velocity heading {Field} speed 70.00
+	end while
+
+	ALTITUDE of NewGodsHand = 10.00
+	   wait 2 seconds
+		WaterMiracleEffect = create visual effect WATERMIRACLE at {NewGodsHand}+{0,-2,-3} time -1
+	   wait 3 seconds
+		stop visual effect WaterMiracleEffect
+		   WaterMiracleEffect = 0
+		WaterMiracle = make player 1 throw miracle MIRACLE_TYPE_WATER from {NewGodsHand}+{0,-7,-3} heading 1.0 * ({Field} - {NewGodsHand}+{0,-7,-3})
+		   set field Field height to 0.65
+	   wait 5 seconds
+		delete WaterMiracle
+		WaterMiracle = 0
+		  wait 1 second
+	     ALTITUDE of NewGodsHand = 10.00
+	   wait 2 seconds
+end script WaterTheFields
+
+begin script ThrowFireballPlayerTown(NewGodsHand, PlayerTown)
+	FireMiracleEffect = 0
+	FireMiracle = 0
+	FireMiracle2 = 0
+	House = get building HOUSEC in PlayerTown min built 1.0
+	Altar = get building ALTAR in PlayerTown min built 1.0
+	FiringPoint = marker at {1383,56.32,687}
+start
+	ALTITUDE of NewGodsHand = 15.00
+		while {NewGodsHand} not near {FiringPoint}
+			ANGLE of NewGodsHand = 0.00
+			XANGLE of NewGodsHand = 0.00
+			ZANGLE of NewGodsHand = 0.00
+			ALTITUDE of NewGodsHand = 15.00
+			set NewGodsHand velocity heading {FiringPoint} speed 70.00
+		end while
+		   ALTITUDE of NewGodsHand = 40.00
+			wait 2 seconds
+		   FireMiracleEffect = create visual effect FIREMIRACLE at {NewGodsHand}+{0,-2,-2} time -1
+			wait 3 seconds
+		   stop visual effect FireMiracleEffect
+			FireMiracleEffect = 0
+		   FireMiracle = make player -1 throw miracle MIRACLE_TYPE_FIRE from {FiringPoint}+{0,40,0} heading 1.5 * {House}
+			wait 2.5 seconds
+		   FireMiracleEffect = create visual effect FIREMIRACLE at {NewGodsHand}+{0,-2,-2} time -1
+			wait 3 seconds
+		   stop visual effect FireMiracleEffect
+			FireMiracleEffect = 0
+		   FireMiracle2 = make player -1 throw miracle MIRACLE_TYPE_FIRE from {NewGodsHand}+{0,8,-3} heading 0.5 * {House}
+			wait 6 seconds
+		   delete FireMiracle
+	ALTITUDE of NewGodsHand = 25.00
+			wait 2 seconds
+		   delete FireMiracle2
+	ALTITUDE of NewGodsHand = 15.00
+end script ThrowFireballPlayerTown
+
+begin script BuildMostDesired(NewGodsHand, NewGodsTown)
+	MostDesiredBuilding = variable get NewGodsTown desired building
+	BuildingBlueprint = 0
+	ConstructionTimer = 0
+	PlannedBuilding = 0
+	Villager = 0
+	HousePos1 = marker at {1224,54.68,591}
+start
+	PlannedBuilding = get planned HOUSEC near {NewGodsTown} radius NewGodsTown
+	if PlannedBuilding exists and PlannedBuilding == MostDesiredBuilding
+		build all town NewGodsTown buildings in group 0
+			ConstructionTimer = create timer for 60 seconds
+		if get ConstructionTimer time remaining == 0.0
+			ALTITUDE of NewGodsHand = 12.00
+				wait 2 seconds
+			Villager = get living villager at {NewGodsTown} radius 40.0
+		     while {NewGodsHand} not near {Villager} radius 1.00
+			  ANGLE of NewGodsHand = 0.00
+			  XANGLE of NewGodsHand = 0.00
+			  ZANGLE of NewGodsHand = 0.00
+			  ALTITUDE of NewGodsHand = 12.00
+			  set NewGodsHand velocity heading {Villager} speed 40.00
+		     end while
+			ALTITUDE of NewGodsHand = 12.00 - 2.00
+				wait 1 second
+			ALTITUDE of NewGodsHand = 6.00
+				set Villager position to {NewGodsHand}
+			wait 2 seconds
+				release Villager
+				set Villager disciple VILLAGER_DISCIPLE_BUILDER
+			    wait 2 seconds
+			ALTITUDE of NewGodsHand = 10.00
+		end if 
+	end if
+end script BuildMostDesired
+
+begin script CreateDiscipleBreeders(NewGodsHand, Villager, NewGodsTown)
+
+start
+  if Villager exists and Villager is VILLAGER_DISCIPLE_NONE
+   	   ALTITUDE of NewGodsHand = 12.00
+	while {NewGodsHand} not near {Villager} radius 3.00
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 10.00
+		set NewGodsHand velocity heading {Villager} speed 70.00
+	end while
+	   ALTITUDE of NewGodsHand = 8.00
+		wait 2 seconds
+	   set Villager position to {NewGodsHand}+{0,-2,-3}
+		wait 2 seconds
+	   set Villager disciple VILLAGER_DISCIPLE_BREEDER
+		wait 1 second
+	   ALTITUDE of NewGodsHand = 6.00
+	   release Villager
+   end if
+end script CreateDiscipleBreeders
+
+begin script WaterTheForest(NewGodsHand, NewGodsTown)
+	Tree1 = get TREE SPRUCE at {NewGodsTown} radius 200
+	MiracleChargingEffect = 0
+	WaterMiracleEffect = 0
+	WaterMiracle = 0
+	Altar = get building ALTAR in NewGodsTown min built 1.0
+start
+if Altar exists
+  if Tree1 exists
+	ALTITUDE of NewGodsHand = 10.00
+		wait 1 second
+	while {NewGodsHand} not near {Altar} radius 2.00
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 10.00
+		set NewGodsHand velocity heading {Altar} speed 70.00
+	end while
+	   ALTITUDE of NewGodsHand = 8.00
+		wait 1 second
+	   MiracleChargingEffect = create visual effect VISUAL_EFFECT_MIRACLE_CHARGE at {NewGodsHand}+{0,-2,-3} time 12
+		wait 12 seconds
+	   play string sound "PickingSpell"
+	   stop visual effect MiracleChargingEffect
+		wait 1 second
+	ALTITUDE of NewGodsHand = 12.00
+		wait 1 second
+	while {NewGodsHand} not near {Tree1}
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 12.00
+		set NewGodsHand velocity heading {Tree1} speed 70.00
+	end while
+	     ALTITUDE of NewGodsHand = 13.00
+	   wait 1 second
+		WaterMiracleEffect = create visual effect WATERMIRACLE at {NewGodsHand}+{0,-2,-3} time -1
+	   wait 3 seconds
+		stop visual effect WaterMiracleEffect
+		   WaterMiracleEffect = 0
+		WaterMiracle = make player -1 throw miracle MIRACLE_TYPE_WATER from {NewGodsHand}+{0,-7,-3} heading ({Tree1} - {NewGodsHand}+{0,-7,-3})
+		   add effect WET at {NewGodsHand} strength 6000000.00 radius Tree1
+	   wait 5 seconds
+		delete WaterMiracle
+		WaterMiracle = 0
+		  wait 1 second
+	     ALTITUDE of NewGodsHand = 10.00
+	   wait 2 seconds
+
+  else
+		Tree1 = get TREE CEDAR at {NewGodsTown} radius 200
+	    wait 3 seconds
+	ALTITUDE of NewGodsHand = 10.00
+		wait 1 second
+	while {NewGodsHand} not near {Altar} radius 2.00
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 10.00
+		set NewGodsHand velocity heading {Altar} speed 70.00
+	end while
+	   ALTITUDE of NewGodsHand = 8.00
+		wait 1 second
+	   MiracleChargingEffect = create visual effect VISUAL_EFFECT_MIRACLE_CHARGE at {NewGodsHand}+{0,-2,-3} time 12
+		wait 12 seconds
+	   play string sound "PickingSpell"
+	   stop visual effect MiracleChargingEffect
+		wait 1 second
+	ALTITUDE of NewGodsHand = 12.00
+		wait 1 second
+	while {NewGodsHand} not near {Tree1}
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 12.00
+		set NewGodsHand velocity heading {Tree1} speed 70.00
+	end while
+	     ALTITUDE of NewGodsHand = 13.00
+	   wait 1 second
+		WaterMiracleEffect = create visual effect WATERMIRACLE at {NewGodsHand}+{0,-2,-3} time -1
+	   wait 3 seconds
+		stop visual effect WaterMiracleEffect
+		   WaterMiracleEffect = 0
+		WaterMiracle = make player 1 throw miracle MIRACLE_TYPE_WATER from {NewGodsHand}+{0,-7,-3} heading ({Tree1} - {NewGodsHand}+{0,-7,-3})
+		   add effect WET at {NewGodsHand} strength 6000000.00 radius Tree1
+	   wait 5 seconds
+		delete WaterMiracle
+		WaterMiracle = 0
+		  wait 1 second
+	     ALTITUDE of NewGodsHand = 10.00
+	   wait 2 seconds
+  end if
+else
+  if Tree1 exists
+	ALTITUDE of NewGodsHand = 12.00
+		wait 1 second
+	while {NewGodsHand} not near {Tree1}
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 12.00
+		set NewGodsHand velocity heading {Tree1} speed 70.00
+	end while
+	     ALTITUDE of NewGodsHand = 13.00
+	   wait 1 second
+		WaterMiracleEffect = create visual effect WATERMIRACLE at {NewGodsHand}+{0,-2,-3} time -1
+	   wait 3 seconds
+		stop visual effect WaterMiracleEffect
+		   WaterMiracleEffect = 0
+		WaterMiracle = make player -1 throw miracle MIRACLE_TYPE_WATER from {NewGodsHand}+{0,-7,-3} heading ({Tree1} - {NewGodsHand}+{0,-7,-3})
+		   add effect WET at {NewGodsHand} strength 6000000.00 radius Tree1
+	   wait 5 seconds
+		delete WaterMiracle
+		WaterMiracle = 0
+		  wait 1 second
+	     ALTITUDE of NewGodsHand = 10.00
+	   wait 2 seconds
+  else
+		Tree1 = get TREE CEDAR at {NewGodsTown} radius 200
+	    wait 3 seconds
+	ALTITUDE of NewGodsHand = 12.00
+		wait 1 second
+	while {NewGodsHand} not near {Tree1}
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 12.00
+		set NewGodsHand velocity heading {Tree1} speed 70.00
+	end while
+	     ALTITUDE of NewGodsHand = 13.00
+	   wait 1 second
+		WaterMiracleEffect = create visual effect WATERMIRACLE at {NewGodsHand}+{0,-2,-3} time -1
+	   wait 3 seconds
+		stop visual effect WaterMiracleEffect
+		   WaterMiracleEffect = 0
+		WaterMiracle = make player 1 throw miracle MIRACLE_TYPE_WATER from {NewGodsHand}+{0,-7,-3} heading ({Tree1} - {NewGodsHand}+{0,-7,-3})
+		   add effect WET at {NewGodsHand} strength 6000000.00 radius Tree1
+	   wait 5 seconds
+		delete WaterMiracle
+		WaterMiracle = 0
+		  wait 1 second
+	     ALTITUDE of NewGodsHand = 10.00
+	   wait 2 seconds
+  end if
+end if
+end script WaterTheForest
+
+begin script MoveVillagersHome(Villager, RandomHome, NewGodsHand)
+
+start
+  if Villager exists and Villager is VILLAGER_DISCIPLE_NONE
+	ALTITUDE of NewGodsHand = 12.00
+		wait 1 second
+	while {NewGodsHand} not near {Villager} radius 1.00
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 12.00
+		set NewGodsHand velocity heading {Villager} speed 40.00
+	end while
+	     ALTITUDE of NewGodsHand = 8.00
+		wait 2 seconds
+	ALTITUDE of NewGodsHand = 4.00
+		set Villager position to {NewGodsHand}
+			wait 2 seconds
+	while {NewGodsHand} not near {RandomHome} radius 2.00
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 12.00
+		ALTITUDE of Villager = 11.00
+		set Villager position to {NewGodsHand}
+		set NewGodsHand velocity heading {RandomHome} speed 40.00
+	end while
+	     ALTITUDE of NewGodsHand = 4.00
+		wait 2 seconds
+	ALTITUDE of Villager = 0.00
+	release Villager
+		ALTITUDE of NewGodsHand = 10.00
+  end if
+end script MoveVillagersHome
+
+// ProtecGH12
+begin script ProtectTheTown(NewGodsTown, NewGodsHand)
+	TownCentre = get building ABODE_NUMBER_TOWN_CENTRE in NewGodsTown min built 1.0
+	PlayerPlatoon = get platoon of player 0 nearest {TownCentre} radius 5.00
+	LightningEffect = 0
+	LightningMiracle = 0
+	WindMiracle = 0
+	WindEffect = 0
+
+	FireEffect = 0
+	FireMiracle = 0
+
+	RandomMiracle = 0
+start
+	   RandomMiracle = number from 1 to 3
+	ALTITUDE of NewGodsHand = 8.00
+	    wait 1 second
+		while {NewGodsHand} not near {TownCentre}+{0,0,4} radius 0.20
+			ANGLE of NewGodsHand = 0.00
+			XANGLE of NewGodsHand = 0.00
+			ZANGLE of NewGodsHand = 0.00
+			ALTITUDE of NewGodsHand = 10.00
+			set NewGodsHand velocity heading {TownCentre}+{0,0,4} speed 20.00
+		end while
+		    ALTITUDE of NewGodsHand = 10.00
+		// If First Choice, then cast the Fire Miracle
+	   while PlayerPlatoon exists
+		if RandomMiracle == 1
+			ALTITUDE of NewGodsHand = 10.00
+		     wait 1 second
+			FireEffect = create visual effect VISUAL_MIRACLE_FIRE_IN_HAND at {NewGodsHand}+{0,-2,-3} time -1
+		     wait 2 seconds
+			stop visual effect FireEffect
+			FireEffect = 0
+		     FireMiracle = make player 1 throw miracle MIRACLE_TYPE_FIRE from {NewGodsHand}+{0,-6,-3} heading ({TownCentre} - {NewGodsHand})
+			wait 5 seconds
+		     delete FireMiracle
+			FireMiracle = 0
+				RandomMiracle = number from 1 to 3
+		// If Second Choice, then cast the Lightning Miracle
+		elsif RandomMiracle == 2
+			ALTITUDE of NewGodsHand = 10.00
+		     wait 1 second
+			LightningEffect = create visual effect VISUAL_MIRACLE_STORM_IN_HAND at {NewGodsHand}+{0,-2,-3} time -1
+		     wait 2 seconds
+			stop visual effect LightningEffect
+			LightningEffect = 0
+		     LightningMiracle = make player 1 throw miracle MIRACLE_TYPE_STORM from {NewGodsHand}+{0,-6,-3} heading ({TownCentre} - {NewGodsHand})
+			wait 5 seconds
+		     delete LightningMiracle
+			LightningMiracle = 0
+				RandomMiracle = number from 1 to 3
+		elsif RandomMiracle == 3
+			ALTITUDE of NewGodsHand = 10.00
+		     wait 1 second
+			WindEffect = create visual effect VISUAL_MIRACLE_WIND_IN_HAND at {NewGodsHand}+{0,-2,-3} time -1
+		     wait 2 seconds
+			stop visual effect WindEffect
+			WindEffect = 0
+		     WindMiracle = make player 1 throw miracle MIRACLE_TYPE_WIND from {NewGodsHand}+{0,-6,-3} heading ({TownCentre} - {NewGodsHand})
+			wait 5 seconds
+		     delete WindMiracle
+			WindMiracle = 0
+				RandomMiracle = number from 1 to 3
+		end if
+	   end while
+  GGod_AlignmentAttackedPlayerPlatoon = 1
+  UnderAttack = 0
+end script ProtectTheTown
+
+begin script CheckForPlayerAttack(NewGodsTown)
+	TownCentre = get building ABODE_NUMBER_TOWN_CENTRE in NewGodsTown min built 1.0
+	PlayerPlatoon = get platoon of player 0 nearest {TownCentre} radius 5.00
+start
+begin loop
+	// Check to see if a platoon is nearby
+	if town NewGodsTown is under takeover from player 0 or PlayerPlatoon exists
+		UnderAttack = 1
+	end if
+end loop
+end script CheckForPlayerAttack
+
+
+// Script that controls the construction of an armoury if it does not exist
+// and once constructed, he spawns a platoon and moves it into place.
+// SpawnPlatoon8XC2
+begin script SpawnPlatoon(NewGodsHand, NewGodsTown)
+	Storehouse = get building ABODE_NUMBER_STORAGE_PIT in NewGodsTown min built 1.0
+	Armoury = get building MELEE in NewGodsTown min built 1.0
+	UnfinishedArmoury = 0
+	NewGodsTownPlayer = get NewGodsTown player
+	OreMine = marker at {1326,57.48,526}
+	NewForest = marker at {1478,70.37,673}
+	WoodEffectUp = 0
+	WoodEffectDown = 0
+	Template = 0
+	Desire = 0
+	OreEffectUp = 0
+	OreEffectDown = 0
+	OreRock = 0
+	ArmouryPlaced = 0
+	TreeToCollect = 0
+
+	//Army Variables
+	ArmySize = get army size in town NewGodsTown
+	TargetPos = 0
+	PlatoonControlTimer = 0
+	MarkerPos = 0
+	Melee = variable constant from ARMY_UNIT_TYPE_MELEE_1 to ARMY_UNIT_TYPE_MELEE_10
+start
+	ALTITUDE of NewGodsHand = 15.00
+	   wait 1 second
+begin loop
+   Template = get planned MELEE in NewGodsTown near {NewGodsTown} radius 100.00
+   Desire = build town NewGodsTown buildings of type MELEE in group 0
+if Armoury not exists
+    if ArmouryPlaced == 0
+		UnfinishedArmoury = get building MELEE in NewGodsTown min built 0.0
+	     wait 1 second
+		while {NewGodsHand} not near {UnfinishedArmoury} radius 1.00
+			ANGLE of NewGodsHand = 0.00
+			XANGLE of NewGodsHand = 0.00
+			ZANGLE of NewGodsHand = 0.00
+			ALTITUDE of NewGodsHand = 10.00
+			set NewGodsHand velocity heading {UnfinishedArmoury} speed 70.00
+		end while
+		ALTITUDE of NewGodsHand = 10.00
+			wait 1 second
+		   ArmouryPlaced = 1
+    elsif ArmouryPlaced == 1
+	   if PERCENTBUILT of UnfinishedArmoury < 0.50
+  			if {OreMine1} near {NewGodsTown} radius 100.00
+	 			ALTITUDE of NewGodsHand = 10.00
+	     				wait 1 second
+	   			while {NewGodsHand} not near {OreMine1} radius 1.00
+					ANGLE of NewGodsHand = 0.00
+					XANGLE of NewGodsHand = 0.00
+					ZANGLE of NewGodsHand = 0.00
+					ALTITUDE of NewGodsHand = 10.00
+					set NewGodsHand velocity heading {OreMine1} speed 70.00
+	   			end while
+				   ALTITUDE of NewGodsHand = 10.00
+					wait 3 seconds
+		     				play sound "PICKUPORE" at {NewGodsHand} with volume 1.0 pitch 0.0
+				OreRock = create visual effect VISUAL_EFFECT_RESOURCE_ORE_DOWN at {NewGodsHand}+{0,-2,-3} time -1
+					ALTITUDE of NewGodsHand = 10.00
+						wait 1.5 seconds
+					    stop sound "PICKUPORE"
+					    stop visual effect OreRock
+					while {NewGodsHand} not near {Storehouse} radius 1.00
+						ANGLE of NewGodsHand = 0.00
+						XANGLE of NewGodsHand = 0.00
+						ZANGLE of NewGodsHand = 0.00
+						ALTITUDE of NewGodsHand = 13.00
+						ALTITUDE of OreRock = 12.00
+						set OreRock position to {NewGodsHand}+{0,-2,-3}
+						set NewGodsHand velocity heading {Storehouse} speed 70.00
+					end while
+					ALTITUDE of NewGodsHand = 15.00
+					OreEffectDown = create visual effect VISUAL_EFFECT_RESOURCE_ORE_DOWN at {NewGodsHand}+{0,-2,-3} time -1
+						wait 1 second
+					ALTITUDE of NewGodsHand = 10.00
+						stop visual effect OreEffectDown
+					    wait 1 second
+						ALTITUDE of NewGodsHand = 13.00
+					while {NewGodsHand} not near {Storehouse} radius 1.00
+						ANGLE of NewGodsHand = 0.00
+						XANGLE of NewGodsHand = 0.00
+						ZANGLE of NewGodsHand = 0.00
+						ALTITUDE of NewGodsHand = 13.00
+						set NewGodsHand velocity heading {Storehouse} speed 70.00
+					end while
+		   				ALTITUDE of NewGodsHand = 13.00
+							wait 1 second
+		     				play sound "PICKUPORE" at {NewGodsHand} with volume 1.0 pitch 0.0
+					OreEffectUp = create visual effect VISUAL_EFFECT_RESOURCE_ORE_DOWN at {NewGodsHand}+{0,-2,-3} time -1
+						wait 0.8 seconds
+					stop sound "PICKUPORE"
+					stop visual effect OreEffectUp
+						wait 1 second
+					while {NewGodsHand} not near {UnfinishedArmoury} radius 1.00
+						ANGLE of NewGodsHand = 0.00
+						XANGLE of NewGodsHand = 0.00
+						ZANGLE of NewGodsHand = 0.00
+						ALTITUDE of NewGodsHand = 12.00
+						set NewGodsHand velocity heading {UnfinishedArmoury} speed 70.00
+					end while
+		   				ALTITUDE of NewGodsHand = 12.00
+							wait 0.8 seconds
+						OreEffectDown = create visual effect VISUAL_EFFECT_RESOURCE_ORE_DOWN at {NewGodsHand}+{0,-2,-3} time -1
+		     				play sound "PICKUPWOOD" at {NewGodsHand} with volume 1.0 pitch 0.0
+					while PERCENTBUILT of UnfinishedArmoury < 0.50
+						PERCENTBUILT of UnfinishedArmoury = PERCENTBUILT of UnfinishedArmoury + 0.025
+					end while
+						wait 1 second
+					   stop visual effect OreEffectDown
+				   stop sound "PICKUPWOOD"
+					ALTITUDE of NewGodsHand = 12.00
+				remove resource RESOURCE_TYPE_ORE 500 from UnfinishedArmoury
+  			elsif {OreMine2} near {NewGodsTown} radius 100.00
+	 			ALTITUDE of NewGodsHand = 10.00
+	     				wait 1 second
+	   			while {NewGodsHand} not near {OreMine2} radius 1.00
+					ANGLE of NewGodsHand = 0.00
+					XANGLE of NewGodsHand = 0.00
+					ZANGLE of NewGodsHand = 0.00
+					ALTITUDE of NewGodsHand = 10.00
+					set NewGodsHand velocity heading {OreMine2} speed 70.00
+	   			end while
+
+				ALTITUDE of NewGodsHand = 10.00
+		     				play sound "PICKUPORE" at {NewGodsHand} with volume 1.0 pitch 0.0
+					OreEffectUp = create visual effect VISUAL_EFFECT_RESOURCE_ORE_DOWN at {NewGodsHand}+{0,-2,-3} time -1
+						wait 1.3 seconds
+					stop sound "PICKUPORE"
+					stop visual effect OreEffectUp
+					    ALTITUDE of NewGodsHand = 10.00
+						wait 1 second
+				while {NewGodsHand} not near {Storehouse} radius 1.00
+					ANGLE of NewGodsHand = 0.00
+					XANGLE of NewGodsHand = 0.00
+					ZANGLE of NewGodsHand = 0.00
+					ALTITUDE of NewGodsHand = 13.00
+					ALTITUDE of OreRock = 12.00
+					set NewGodsHand velocity heading {Storehouse} speed 70.00
+				end while
+					ALTITUDE of NewGodsHand = 15.00
+					OreEffectDown = create visual effect VISUAL_EFFECT_RESOURCE_ORE_DOWN at {NewGodsHand}+{0,-2,-3} time -1
+						wait 1 second
+					stop sound "PICKUPORE"
+					stop visual effect OreEffectDown
+					  ALTITUDE of NewGodsHand = 12.00
+					    wait 1 second
+						ALTITUDE of NewGodsHand = 12.00
+					while {NewGodsHand} not near {Storehouse} radius 1.00
+						ANGLE of NewGodsHand = 0.00
+						XANGLE of NewGodsHand = 0.00
+						ZANGLE of NewGodsHand = 0.00
+						ALTITUDE of NewGodsHand = 12.00
+						set NewGodsHand velocity heading {Storehouse} speed 70.00
+					end while
+		   				ALTITUDE of NewGodsHand = 12.00
+							wait 1 second
+		     				play sound "PICKUPORE" at {NewGodsHand} with volume 1.0 pitch 0.0
+					OreEffectUp = create visual effect VISUAL_EFFECT_RESOURCE_ORE_DOWN at {NewGodsHand}+{0,-2,-3} time -1
+						wait 3 seconds
+					stop sound "PICKUPORE"
+					stop visual effect OreEffectUp
+						wait 1 second
+					while {NewGodsHand} not near {UnfinishedArmoury} radius 1.00
+						ANGLE of NewGodsHand = 0.00
+						XANGLE of NewGodsHand = 0.00
+						ZANGLE of NewGodsHand = 0.00
+						ALTITUDE of NewGodsHand = 12.00
+						set NewGodsHand velocity heading {UnfinishedArmoury} speed 35.00
+					end while
+		   		ALTITUDE of NewGodsHand = 12.00
+					wait 1 second
+				OreEffectDown = create visual effect VISUAL_EFFECT_RESOURCE_ORE_DOWN at {NewGodsHand}+{0,-2,-3} time -1
+		     				play sound "PICKUPWOOD" at {NewGodsHand} with volume 1.0 pitch 0.0
+					while PERCENTBUILT of UnfinishedArmoury < 0.50
+						PERCENTBUILT of UnfinishedArmoury = PERCENTBUILT of UnfinishedArmoury + 0.025
+					end while
+					   stop visual effect OreEffectDown
+					      stop sound "PICKUPWOOD"
+						wait 1 second
+			    		ALTITUDE of NewGodsHand = 12.00
+				remove resource RESOURCE_TYPE_ORE 500 from UnfinishedArmoury
+			end if
+	end if
+
+	if PERCENTBUILT of UnfinishedArmoury < 1.00
+		if get resource RESOURCE_TYPE_WOOD in Storehouse >= 2000
+				ALTITUDE of NewGodsHand = 12.00
+					wait 1 second
+			while {NewGodsHand} not near {Storehouse} radius 2.00
+				ANGLE of NewGodsHand = 0.00
+				XANGLE of NewGodsHand = 0.00
+				ZANGLE of NewGodsHand = 0.00
+				ALTITUDE of NewGodsHand = 12.00
+				set NewGodsHand velocity heading {Storehouse} speed 70.00
+	   		end while
+
+				ALTITUDE of NewGodsHand = 10.00
+					wait 1.5 seconds
+				WoodEffectUp = create visual effect VISUAL_EFFECT_RESOURCE_WOOD_DOWN at {NewGodsHand}+{0,-2,-3} time -1
+					wait 3 seconds
+				stop visual effect WoodEffectUp
+			while {NewGodsHand} not near {UnfinishedArmoury} radius 1.00
+				XANGLE of NewGodsHand = 0.00
+				ZANGLE of NewGodsHand = 180.00
+				ANGLE of NewGodsHand = 0.00
+				ALTITUDE of NewGodsHand = 12.00
+				set NewGodsHand velocity heading {UnfinishedArmoury} speed 70.00
+			end while
+	    				wait 1 second
+		     				play sound "PICKUPWOOD" at {NewGodsHand} with volume 1.0 pitch 0.0
+	      		WoodEffectDown = create visual effect VISUAL_EFFECT_RESOURCE_WOOD_DOWN at {NewGodsHand}+{0,-2,-3} time -1
+				while PERCENTBUILT of UnfinishedArmoury < 1.00
+					PERCENTBUILT of UnfinishedArmoury = PERCENTBUILT of UnfinishedArmoury + 0.045
+				end while				
+				   stop visual effect WoodEffectDown
+				   stop sound "PICKUPWOOD"
+	    				wait 1 second
+				remove resource RESOURCE_TYPE_WOOD 2000 from UnfinishedArmoury
+		else
+			TreeToCollect = get SCRIPT_OBJECT_TYPE_TREE at {NewGodsTown} radius 100.00
+				ALTITUDE of NewGodsHand = 12.00
+					wait 1 second
+			while {NewGodsHand} not near {TreeToCollect} radius 2.00
+				ANGLE of NewGodsHand = 0.00
+				XANGLE of NewGodsHand = 0.00
+				ZANGLE of NewGodsHand = 0.00
+				ALTITUDE of NewGodsHand = 12.00
+				set NewGodsHand velocity heading {TreeToCollect} speed 80.00
+	   		end while
+			   wait 1 second
+			while {NewGodsHand} not near {Storehouse} radius 1.00
+				XANGLE of NewGodsHand = 0.00
+				ZANGLE of NewGodsHand = 180.00
+				ANGLE of NewGodsHand = 0.00
+				ALTITUDE of NewGodsHand = 12.00
+				set TreeToCollect position to {NewGodsHand}+{0,-2,-3}
+				set NewGodsHand velocity heading {Storehouse} speed 80.00
+			end while
+				ALTITUDE of NewGodsHand = 12.00
+	    				wait 1 second
+	      		set TreeToCollect velocity heading {Storehouse} speed 80.00
+			   ALTITUDE of NewGodsHand = 15.00
+	    				wait 2 seconds
+		     			   play sound "PICKUPWOOD" at {NewGodsHand} with volume 1.0 pitch 0.0
+				WoodEffectUp = create visual effect VISUAL_EFFECT_RESOURCE_WOOD_DOWN at {NewGodsHand}+{0,-2,-3} time -1
+				ZANGLE of WoodEffectUp = 180.00
+					wait 1.5 seconds
+				stop visual effect WoodEffectUp
+				stop sound "PICKUPWOOD"
+			while {NewGodsHand} not near {UnfinishedArmoury} radius 1.00
+				XANGLE of NewGodsHand = 0.00
+				ZANGLE of NewGodsHand = 0.00
+				ANGLE of NewGodsHand = 0.00
+				ALTITUDE of NewGodsHand = 12.00
+				set NewGodsHand velocity heading {UnfinishedArmoury} speed 80.00
+			end while
+				ALTITUDE of NewGodsHand = 15.00
+					wait 1 second
+				ALTITUDE of NewGodsHand = 10.00
+	    				wait 2 seconds
+		     				play sound "PICKUPWOOD" at {NewGodsHand} with volume 1.0 pitch 0.0
+	      		WoodEffectDown = create visual effect VISUAL_EFFECT_RESOURCE_WOOD_DOWN at {NewGodsHand}+{0,-2,-3} time -1
+				while PERCENTBUILT of UnfinishedArmoury < 1.00
+					PERCENTBUILT of UnfinishedArmoury = PERCENTBUILT of UnfinishedArmoury + 0.045
+				end while
+				   stop visual effect WoodEffectDown
+				   stop sound "PICKUPWOOD"
+	    		       wait 1 second
+		end if
+			wait until PERCENTBUILT of UnfinishedArmoury == 1.00
+		if PERCENTBUILT of UnfinishedArmoury == 1.00
+			UnfinishedArmoury = get building MELEE in NewGodsTown min built 1.0
+				wait 1 second
+			Armoury = UnfinishedArmoury
+		end if
+        end if
+    end if
+end if
+ until Armoury exists or UnderAttack == 1
+end loop
+end script SpawnPlatoon
+
+begin script InfluenceRingRestrictions(NewGodsHand, NewGodsTown)
+	NewGodActionEffect = 0
+start
+	NewGodsInfluenceRing = marker at get nearest position at NewGodsTown influence ring from {1091,55.17,518}
+begin loop
+      if InfluenceExtensionOneTime == 1
+		while {NewGodsHand} not near {NewGodsInfluenceRing} radius 1.00
+			ANGLE of NewGodsHand = 0.00
+			XANGLE of NewGodsHand = 0.00
+			ZANGLE of NewGodsHand = 0.00
+			ALTITUDE of NewGodsHand = 10.00
+			set NewGodsHand velocity heading {NewGodsInfluenceRing} speed 70.00
+		end while
+		    ALTITUDE of NewGodsHand = 5.00
+			wait 1 second
+		    NewGodActionEffect = create visual effect VISUAL_EFFECT_MIRACLE_CHARGE at {NewGodsHand} time -1
+			wait 2 seconds
+		ALTITUDE of NewGodsHand = 10.00
+			stop visual effect NewGodActionEffect
+		    wait 2 seconds
+			extend town NewGodsTown influence by 35
+		wait 2 seconds
+			InfluenceExtensionOneTime = 0
+      end if
+
+      if {NewGodsHand} not near {NewGodsTown} radius 200
+			wait 2 seconds
+		CantPickThingsUpOutsideInfluence = 1
+      else
+		CantPickThingsUpOutsideInfluence = 0
+      end if
+end loop
+end script InfluenceRingRestrictions
+
+// If the enemy god attacks a player's platoon or invades their or neutral town
+// this script views it as evil and changes the alignment of the god depending
+// on his actions.
+begin script AlignmentHandling(NewGodsHand, NewGodsTown)
+
+start
+begin loop
+    if GGod_AlignmentAttackedPlayerPlatoon == 1
+		OBJECTALIGNMENT of NewGodsHand = get OBJECTALIGNMENT of NewGodsHand - 0.1
+	    wait 1 second
+	GGod_AlignmentAttackedPlayerPlatoon = 0
+    end if
+end loop
+end script AlignmentHandling
+
+// StorehouseConst9912
+begin script BuildStorehouse(NewGodsHand, NewGodsTown, Storehouse)
+	Pos1 = marker at {NewGodsTown}+{50,0,15}
+	Pos2 = marker at get target from {NewGodsTown} to {NewGodsTown}+{50,0,20} distance 4.00 angle 0.00
+	Pos3 = marker at get target from {NewGodsTown} to {NewGodsTown}+{5,0,10} distance 4.00 angle 0.00
+	RandomPos = number from Pos1 to Pos3
+	StorehouseDesire = 0
+
+	NewStorehouse = 0
+	Tree1 = get SCRIPT_OBJECT_TYPE_TREE at {NewGodsTown} radius 100.00
+	WoodDrop = 0
+	TimeForCompletion = 0
+	Villager = 0
+start
+if Tree1 exists
+	ALTITUDE of NewGodsHand = 12.00
+		wait 1 second
+	while {NewGodsHand} not near {Pos1} radius 1.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 12.00
+		set NewGodsHand velocity heading {Pos1} speed 80.00
+	end while
+	    ALTITUDE of NewGodsHand = 12.00
+		wait 0.8 seconds
+	    ALTITUDE of NewGodsHand = 4.00
+		wait 0.8 seconds
+	    NewStorehouse = get planned STOREHOUSE in NewGodsTown near {Pos1} radius 50.00
+	    ALTITUDE of NewGodsHand = 10.00
+	    StorehouseDesire = build town NewGodsTown buildings of type STOREHOUSE in group 0
+		   wait 0.8 seconds
+	    NewStorehouse = get building STOREHOUSE in NewGodsTown min built 0.0
+		ALTITUDE of NewGodsHand = 10.00
+		while {NewGodsHand} not near {Tree1} radius 1.00
+			XANGLE of NewGodsHand = 0.00
+			ZANGLE of NewGodsHand = 0.00
+			ANGLE of NewGodsHand = 0.00
+			ALTITUDE of NewGodsHand = 10.00
+			set NewGodsHand velocity heading {Tree1} speed 70.00
+		end while
+	    ALTITUDE of NewGodsHand = 10.00
+		wait 0.4 seconds
+	    set Tree1 position to {NewGodsHand}+{0,-2,-3}
+	          play sound "TREEBREAK2" at {NewGodsHand} with volume 1.0 pitch 0.0
+		 wait 0.4 seconds
+		delete Tree1 with fade
+	    ALTITUDE of NewGodsHand = 10.00
+		while {NewGodsHand} not near {NewStorehouse} radius 1.00
+			XANGLE of NewGodsHand = 0.00
+			ZANGLE of NewGodsHand = -10.00
+			ANGLE of NewGodsHand = 0.00
+			ALTITUDE of NewGodsHand = 10.00
+			set NewGodsHand velocity heading {NewStorehouse} speed 70.00
+		end while
+			release Tree1
+		    ALTITUDE of NewGodsHand = 10.00
+		WoodDrop = create visual effect VISUAL_EFFECT_RESOURCE_WOOD_DOWN at {NewGodsHand}+{0,-2,-3} time -1
+		   if camera position near {NewGodsHand} radius 100.00
+			play sound "PICKUPWOOD" at {NewGodsHand} with volume 1.0 pitch 0.0
+		   end if
+			wait 0.8 seconds
+		while PERCENTBUILT of NewStorehouse < 1.00
+			PERCENTBUILT of NewStorehouse = PERCENTBUILT of NewStorehouse + 0.045
+		end while
+			stop visual effect WoodDrop
+			   stop sound "PICKUPWOOD"
+		    wait 0.4 second
+		ALTITUDE of NewGodsHand = 14.00
+			Villager = get living villager at {NewGodsTown} radius 70.00
+		    wait 0.8 seconds
+			ALTITUDE of NewGodsHand = 10.00
+				wait 0.8 seconds
+			while {NewGodsHand} not near {Villager} radius 1.00
+				XANGLE of NewGodsHand = 0.00
+				ZANGLE of NewGodsHand = 0.00
+				ANGLE of NewGodsHand = 0.00
+				ALTITUDE of NewGodsHand = 10.00
+				set NewGodsHand velocity heading {Villager} speed 80.00
+			end while
+		    ALTITUDE of NewGodsHand = 5.00
+			wait 0.8 seconds
+		    set Villager position to {NewGodsHand}
+		    set Villager disciple VILLAGER_DISCIPLE_BUILDER
+				wait 0.8 seconds
+		while {NewGodsHand} not near {NewStorehouse} radius 1.00
+			XANGLE of NewGodsHand = 0.00
+			ZANGLE of NewGodsHand = 0.00
+			ANGLE of NewGodsHand = 0.00
+			ALTITUDE of NewGodsHand = 12.00
+			set Villager position to {NewGodsHand}
+			set NewGodsHand velocity heading {NewStorehouse} speed 80.00
+		end while
+		    ALTITUDE of NewGodsHand = 10.00
+		wait 0.8 seconds
+		    release Villager
+     end if
+end script BuildStorehouse
+
+begin script Animation(NewGodsHand)
+	AnimateUpDown = 0
+	AnimateRock = 0
+start
+    if NewGodsHand is moving
+	AnimateUpDown = 0
+	AnimateRock = 0
+    elsif not NewGodsHand is moving
+	AnimateUpDown = 1
+	AnimateRock = 1
+    end if
+
+while AnimateUpDown == 1
+	while AnimateUpDown == 1
+		ALTITUDE of NewGodsHand += 2
+	  wait until ALTITUDE of NewGodsHand == 18
+		ALTITUDE of NewGodsHand += 2
+	  wait until ALTITUDE of NewGodsHand == 10
+        end while
+end while
+
+while AnimateRock == 1
+	while AnimateRock == 1
+		ZANGLE of NewGodsHand += 5
+	    wait until ZANGLE of NewGodsHand == 20
+		ZANGLE of NewGodsHand -= 5
+	    wait until ZANGLE of NewGodsHand == -20
+	end while
+end while
+end script Animation
+
+begin script CreateDiscipleFarmers(NewGodsHand, Villager, Field)
+start
+  if Villager exists and Villager is VILLAGER_DISCIPLE_NONE
+   	   ALTITUDE of NewGodsHand = 12.00
+	while {NewGodsHand} not near {Villager} radius 1.00
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 12.00
+		set NewGodsHand velocity heading {Villager} speed 70.00
+	end while
+	   ALTITUDE of NewGodsHand = 6.00
+		wait 2 seconds
+	   set Villager position to {NewGodsHand}+{0,-2,-3}
+		wait 2 seconds
+	   set Villager disciple VILLAGER_DISCIPLE_FARMER
+		wait 1 second
+	   ALTITUDE of NewGodsHand = 8.00
+	   release Villager
+		wait 1 second
+	   ALTITUDE of NewGodsHand = 10.00
+  end if
+end script CreateDiscipleFarmers
+
+begin script CreateDiscipleForesters(NewGodsHand, Villager)
+start
+  if Villager exists and Villager is VILLAGER_DISCIPLE_NONE
+   	   ALTITUDE of NewGodsHand = 12.00
+	while {NewGodsHand} not near {Villager} radius 1.00
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 10.00
+		set NewGodsHand velocity heading {Villager} speed 70.00
+	end while
+	   ALTITUDE of NewGodsHand = 8.00
+		wait 2 seconds
+	   set Villager disciple VILLAGER_DISCIPLE_FORESTER
+		wait 1 second
+	   ALTITUDE of NewGodsHand = 8.00
+	   release Villager
+		wait 1 second
+	   ALTITUDE of NewGodsHand = 8.00
+  end if
+end script CreateDiscipleForesters
+
+// GodConstN1223
+begin script GodHelpConstructHousing(NewGodsHand, NewGodsTown, AbodeUnderConstruction)
+	HouseDE = variable constant from HOUSED to HOUSEE
+	Civics = variable constant from ABODE_NUMBER_ALTAR to ABODE_NUMBER_BATHHOUSE
+	NextBuildingToConstruct = 0
+	Storehouse = get building ABODE_NUMBER_STORAGE_PIT in NewGodsTown min built 1.0
+	WoodGather = 0
+	WoodGatherDwn = 0
+	OreGather = 0
+	OreGatherDwn = 0
+	HousesLeftToBuild = 0
+start
+   if AbodeUnderConstruction exists and PERCENTBUILT of AbodeUnderConstruction < 1.0
+	ALTITUDE of NewGodsHand = 12.00
+	/*while {NewGodsHand} not near {Storehouse} radius 6.00
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 14.00
+		set NewGodsHand velocity heading ({Storehouse} + {0,14 + 1.0,0}) speed 75.00
+	end while
+	   ALTITUDE of NewGodsHand = 12.00
+	WoodGatherDwn = create visual effect VISUAL_EFFECT_RESOURCE_WOOD_DOWN at {NewGodsHand}+{0,-2,-3} time -1
+	   play sound "PICKUPWOOD" at {NewGodsHand} with volume 1.0 pitch 0.0
+	      wait 1.5 seconds
+		stop visual effect WoodGatherDwn
+		stop sound "PICKUPWOOD"
+              wait 0.3 seconds */
+	while {NewGodsHand} not near {AbodeUnderConstruction} radius 1.00
+		ALTITUDE of NewGodsHand = 12.00
+		set NewGodsHand velocity heading {AbodeUnderConstruction} speed 75.00
+		wait 0.05 seconds
+	end while
+		ALTITUDE of NewGodsHand = 12.00
+	WoodGatherDwn = create visual effect VISUAL_EFFECT_RESOURCE_WOOD_DOWN at {NewGodsHand}+{0,-2,-3} time -1
+		play sound "PICKUPWOOD" at {NewGodsHand} with volume 1.0 pitch 0.0
+		while PERCENTBUILT of AbodeUnderConstruction < 1.00
+			PERCENTBUILT of AbodeUnderConstruction = PERCENTBUILT of AbodeUnderConstruction + 0.095
+		end while
+	wait until PERCENTBUILT of AbodeUnderConstruction == 1.00
+		stop visual effect WoodGatherDwn
+		stop sound "PICKUPWOOD"
+	  ALTITUDE of NewGodsHand = 12.00
+			wait 0.05 seconds
+	  if AbodeUnderConstruction exists
+		run script FindUnbuilt(NewGodsTown, NewGodsHand, AbodeUnderConstruction)
+	  else
+		AbodeUnderConstruction = 0
+	  end if
+   end if
+end script GodHelpConstructHousing
+
+begin script GodHelpConstructCivics(NewGodsHand, NewGodsTown, ThisBuilding)
+	Civics = variable constant from ABODE_NUMBER_ALTAR to ABODE_NUMBER_BATHHOUSE
+	Storehouse = get building ABODE_NUMBER_STORAGE_PIT in NewGodsTown min built 1.0
+	WoodGather = 0
+	WoodGatherDwn = 0
+	OreGather = 0
+	OreGatherDwn = 0
+start
+   if ThisBuilding exists and PERCENTBUILT of ThisBuilding < 1.0
+	ALTITUDE of NewGodsHand = 12.00
+	while {NewGodsHand} not near {ThisBuilding} radius 1.00
+		ALTITUDE of NewGodsHand = 12.00
+		set NewGodsHand velocity heading {ThisBuilding} speed 75.00
+		wait 0.05 seconds
+	end while
+		ALTITUDE of NewGodsHand = 12.00
+	WoodGatherDwn = create visual effect VISUAL_EFFECT_RESOURCE_WOOD_DOWN at {NewGodsHand}+{0,-2,-3} time -1
+		play sound "PICKUPWOOD" at {NewGodsHand} with volume 1.0 pitch 0.0
+		while PERCENTBUILT of ThisBuilding < 1.00
+			PERCENTBUILT of ThisBuilding = PERCENTBUILT of ThisBuilding + 0.095
+		end while
+	wait until PERCENTBUILT of ThisBuilding == 1.00
+		stop visual effect WoodGatherDwn
+		stop sound "PICKUPWOOD"
+	  ALTITUDE of NewGodsHand = 12.00
+			wait 0.05 seconds
+	  if ThisBuilding exists
+		run script FindUnbuiltCivics(NewGodsTown, NewGodsHand, ThisBuilding)
+	  else
+		ThisBuilding = 0
+	  end if
+   end if
+end script GodHelpConstructCivics
+
+// GodProtecHJ9I
+begin script GodProtectTownFromEnemyCreature(NewGodsHand, NewGodsTown, EnemyCreature)
+	RockToThrow = 0
+start
+	ALTITUDE of NewGodsHand = 10.00
+		wait 2 seconds
+	while {NewGodsHand} not near {EnemyCreature} radius 1.00
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 10.00
+		set NewGodsHand velocity heading {EnemyCreature} speed 30.00
+	end while
+	   ALTITUDE of NewGodsHand = 8.00
+		wait 2 seconds
+	 RockToThrow = create MOBILESTATIC BOULDERROUND at {NewGodsHand}+{0,-2,-3}
+		ALTITUDE of RockToThrow = 8.00
+	      wait until {NewGodsHand} near {EnemyCreature} radius 1.00
+		   set RockToThrow velocity heading {EnemyCreature} speed 70.00
+		wait 3 seconds
+end script GodProtectTownFromEnemyCreature
+
+begin script CreateDiscipleWorshippers(NewGodsHand, NewGodsTown, Villager, GodHasRelationsWithPlayer)
+	Altar = get building ALTAR in NewGodsTown min built 1.0
+start
+  if Villager exists and Villager is VILLAGER_DISCIPLE_NONE
+   	   ALTITUDE of NewGodsHand = 12.00
+	while {NewGodsHand} not near {Villager} radius 1.00
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 10.00
+		set NewGodsHand velocity heading {Villager} speed 30.00
+	end while
+	   ALTITUDE of NewGodsHand = 8.00
+		wait 2 seconds
+	   set Villager disciple VILLAGER_DISCIPLE_WORSHIP
+		wait 1 second
+	   ALTITUDE of NewGodsHand = 8.00
+	while {NewGodsHand} not near {Altar} radius 1.00
+		ANGLE of NewGodsHand = 0.00
+		XANGLE of NewGodsHand = 0.00
+		ZANGLE of NewGodsHand = 0.00
+		ALTITUDE of NewGodsHand = 10.00
+		set Villager position to {NewGodsHand}
+		set NewGodsHand velocity heading {Altar}+{10,0,5} speed 70.00
+	end while
+	   ALTITUDE of NewGodsHand = 8.00
+		wait 2 seconds
+	   release Villager
+		wait 1 second
+	   ALTITUDE of NewGodsHand = 8.00
+  end if
+end script CreateDiscipleWorshippers
+
+begin script ManageOreWithRefinery(NewGodsHand, NewGodsTown)
+	RefineryDesire = 0
+	NewRefinery = 0
+	Tree1 = get TREE TREE_INFO_SPRUCE at {NewGodsTown} radius 100.00
+	WoodDrop = 0
+	TimeForCompletion = 0
+	Villager = 0
+start
+		if Tree1 not exists
+			Tree1 = get TREE TREE_INFO_CEDAR at {NewGodsTown} radius 100.00
+		end if
+	ALTITUDE of NewGodsHand = 12.00
+	    NewRefinery = get planned OREREFINERY in NewGodsTown near {NewGodsTown} radius 50.00
+	    ALTITUDE of NewGodsHand = 10.00
+	    RefineryDesire = build town NewGodsTown buildings of type ABODE_NUMBER_SMELTER in group 0
+		   wait 2 seconds
+	    NewRefinery = get building OREREFINERY in NewGodsTown min built 0.0
+		ALTITUDE of NewGodsHand = 10.00
+			wait 1 second
+		while {NewGodsHand} not near {Tree1} radius 1.00
+			XANGLE of NewGodsHand = 0.00
+			ZANGLE of NewGodsHand = 0.00
+			ANGLE of NewGodsHand = 0.00
+			ALTITUDE of NewGodsHand = 10.00
+			set NewGodsHand velocity heading {Tree1} speed 25.00
+		end while
+	    ALTITUDE of NewGodsHand = 10.00
+		wait 2 seconds
+	    set Tree1 position to {NewGodsHand}+{0,-2,-3}
+	          play sound "TREEBREAK2" at {NewGodsHand} with volume 1.0 pitch 0.0
+		 wait 2 seconds
+		delete Tree1 with fade
+	    ALTITUDE of NewGodsHand = 10.00
+		while {NewGodsHand} not near {NewRefinery} radius 1.00
+			XANGLE of NewGodsHand = 0.00
+			ZANGLE of NewGodsHand = -10.00
+			ANGLE of NewGodsHand = 0.00
+			ALTITUDE of NewGodsHand = 10.00
+			set NewGodsHand velocity heading {NewRefinery} speed 70.00
+		end while
+			release Tree1
+		    ALTITUDE of NewGodsHand = 10.00
+		WoodDrop = create visual effect VISUAL_EFFECT_RESOURCE_WOOD_DOWN at {NewGodsHand}+{0,-2,-3} time -1
+		   if camera position near {NewGodsHand} radius 100.00
+			play sound "PICKUPWOOD" at {NewGodsHand} with volume 1.0 pitch 0.0
+		   end if
+			wait 2 seconds
+		while PERCENTBUILT of NewRefinery < 1.00
+			PERCENTBUILT of NewRefinery = PERCENTBUILT of NewRefinery + 0.025
+		end while
+			stop visual effect WoodDrop
+		    wait 1 second
+		    ALTITUDE of NewGodsHand = 5.00
+			wait 1 second
+				wait 2 seconds
+			while {NewGodsHand} not near {NewRefinery} radius 1.00
+				XANGLE of NewGodsHand = 0.00
+				ZANGLE of NewGodsHand = 0.00
+				ANGLE of NewGodsHand = 0.00
+				ALTITUDE of NewGodsHand = 12.00
+				set NewGodsHand velocity heading {NewRefinery} speed 70.00
+			end while
+			    ALTITUDE of NewGodsHand = 10.00
+			wait 2 seconds
+end script ManageOreWithRefinery
+
+// GodRelate234C
+// Allows the player to affect how a god perceives them 
+// - The system calculates based on certain player actions 
+// how to move the relationship threshold to set in each god's mind
+// whether the player is their enemy a neutral or an enemy
+// The player is allowed 75 second sessions to establish relations to prevent cheating.
+begin script GodRelationshipScriptTrigger(GodHasRelationsWithPlayer, NewGodsHand, NewGodsTown)
+	TriggerScroll = 0
+	AffectionSessionStarted = 0
+
+	SetGodsStarterThreshold = 0
+	NewRelationshipValue = 0
+
+	// Relationship Thresholds
+	EnemyThresholdMax = - 100
+	AllyThresholdMax = 100
+	NeutralThreshold = 0
+	NeutralThresholdToAlly = 20
+	NeutralThresholdToEnemy = -20
+start
+	// Starting God relation Threshold - Chooses a random number within a Relationship threshold based on whether the god is an ally or not
+	AllyGodStartingThreshold = NeutralThresholdToAlly
+	NonAllyGodStartingThreshold = NeutralThresholdToEnemy
+	   run background script HandleAffection(NewRelationshipValue, EnemyThresholdMax, AllyThresholdMax, NeutralThreshold, NeutralThresholdToAlly, NeutralThresholdToEnemy, NewGodsTown)
+	   run background script CurrentRelationshipStatus(NewRelationshipValue, NewGodsTown)
+
+if GodHasRelationsWithPlayer == 1
+		SetGodsStarterThreshold = AllyGodStartingThreshold
+	run background script AllyAffectionScript(NewRelationshipValue, SetGodsStarterThreshold, EnemyThresholdMax, AllyThresholdMax, NeutralThreshold, NeutralThresholdToAlly, NeutralThresholdToEnemy, NewGodsHand, NewGodsTown, AffectionSessionStarted, GodHasRelationsWithPlayer)
+else
+ begin loop
+    if GodHasRelationsWithPlayer == 0 and AffectionSessionStarted == 0
+	TriggerScroll = create highlight SCRIPT_HIGHLIGHT_INFO_SCRIPT_BRONZE name "HELP_TEXT_CREATURE_CURRENT_SOURCE_09" remind "HELP_TEXT_CREATURE_CURRENT_SOURCE_09" at {NewGodsTown}+{-5,5,0}
+		ALTITUDE of TriggerScroll = 8.00
+	wait until TriggerScroll left clicked or TriggerScroll right clicked
+	    if TriggerScroll left clicked or TriggerScroll right clicked
+		    begin dialogue
+			say single line "Do you want to attempt to establish a relationship with this god?"
+				wait until read and 2 seconds
+			    clear dialogue
+				wait 0.2 seconds
+			say single line "Press the Y button to accept or N button to refuse."
+				wait until read and 2 seconds
+			    clear dialogue
+				wait 0.2 seconds
+			     wait until key KB_Y down or key KB_N down
+			if key KB_Y down
+				clear dialogue
+				   wait 0.2 seconds
+		   		      delete TriggerScroll with fade
+				enable global influence
+				enable influence
+				   AffectionSessionStarted = 1
+				 SetGodsStarterThreshold = NonAllyGodStartingThreshold
+			    run background script StartRelationSessionTimer(AffectionSessionStarted)
+			    run background script EnemyAffectionScript(NewRelationshipValue, SetGodsStarterThreshold, EnemyThresholdMax, AllyThresholdMax, NeutralThreshold, NeutralThresholdToAlly, NeutralThresholdToEnemy, NewGodsHand, NewGodsTown, AffectionSessionStarted, GodHasRelationsWithPlayer)
+			elsif key KB_N down
+		   		delete TriggerScroll with fade
+					wait 2 seconds
+			end if
+		    end dialogue
+	    end if
+    end if
+ end loop
+end if
+end script GodRelationshipScriptTrigger
+
+begin script StartRelationSessionTimer(AffectionSessionStarted)
+	SessionTimer = 0
+	TimerStarted = 0
+start
+begin dialogue
+	if AffectionSessionStarted == 1
+		SessionTimer = create timer for 75 seconds
+		clear dialogue
+		      	wait 0.2 seconds
+	      say single line "Your session has started. You have approximately 75 seconds to establish a relationship with this god."
+		wait until read
+			clear dialogue
+         end if
+
+         if get SessionTimer time remaining == 0.00
+		clear dialogue
+	      		wait 0.2 seconds
+	     say single line "Your session has expired. To have another go at establishing relations with this god simply click the scroll."
+		wait until read and 3 seconds
+			clear dialogue
+		wait 0.2 seconds
+	     disable global influence
+	     enable influence
+		AffectionSessionStarted = 0
+		TimerStarted = 0
+         end if
+end dialogue
+end script StartRelationSessionTimer
+
+begin script CurrentRelationshipStatus(NewRelationshipValue, NewGodsTown)
+	RelationMeter = create with angle 0.0 and scale 1.00 MOBILESTATIC MOBILE_STATIC_INFO_AZTEC_STREETLIGHT at {NewGodsTown}+{-5,0,20}
+	NewRelationshipValueChange = 0
+start
+	enable RelationMeter indestructible
+	disable RelationMeter pickup
+	disable RelationMeter can be fisted
+begin loop
+NewRelationshipValueChange += NewRelationshipValue
+      wait 2 seconds
+   if RelationMeter == get object hand is over and bindable action BINDABLE_ACTION_TYPE_ACTION performed
+      begin dialogue
+	   clear dialogue
+		wait 0.2 seconds
+	say "Current Relationship Value: $P" with number NewRelationshipValueChange
+		wait until read and 2 seconds
+			clear dialogue
+			close dialogue
+		wait 0.2 seconds
+      end dialogue
+   end if
+end loop
+end script CurrentRelationshipStatus
+
+begin script AllyAffectionScript(NewRelationshipValue, SetGodsStarterThreshold, EnemyThresholdMax, AllyThresholdMax, NeutralThreshold, NeutralThresholdToAlly, NeutralThresholdToEnemy, NewGodsHand, NewGodsTown, AffectionSessionStarted, GodHasRelationsWithPlayer)
+	StoragePit = get building STOREHOUSE in NewGodsTown min built 1.0
+	NewGodsTownPlayer = get NewGodsTown player	
+
+	NearbyObject = 0
+	Miracles = variable constant from WATER to HEAL
+	GodHasNoInterestInPlayer = 0
+	WaterMiracleCast = get spell WATER at {NewGodsHand} radius 75
+	HealMiracleCast = get spell HEAL at {NewGodsHand} radius 75
+
+	WaterMiracle = get SCRIPT_OBJECT_TYPE_ONE_SHOT_SPELL_IN_HAND MIRACLE_TYPE_WATER at hand position radius 75
+start
+	NewRelationshipValue = SetGodsStarterThreshold
+	NearbyObject = get object held
+
+	enable town NewGodsTown can be taken by force
+	run background script AllyCheckForPlayerMiracleCasts(NewGodsHand)
+begin loop
+begin dialogue
+     if WaterMiracleAlreadyCast == 1 and hand position near {NewGodsHand} radius 1.00 and GodHasRelationsWithPlayer == 1
+			clear last gesture
+			clear player 0 spell charging
+			clear left clicked position
+			clear right clicked position
+			clear get object held hit land
+			clear get object held hit object
+		NewRelationshipValue += 0.12
+		   clear dialogue
+		      wait 0.2 seconds
+			say single line "Your relations with your ally has improved."
+			    wait until read and 2 seconds
+		   clear dialogue
+			clear last gesture
+			clear left clicked object
+			clear right clicked object
+		      wait 0.2 seconds
+			WaterMiracleAlreadyCast = 2
+     elsif HealMiracleAlreadyCast == 1 and hand position near {NewGodsHand} radius 1.00 and GodHasRelationsWithPlayer == 1
+			clear last gesture
+			clear player 0 spell charging
+			clear left clicked position
+			clear right clicked position
+			clear get object held hit land
+			clear get object held hit object
+		NewRelationshipValue += 0.22
+		   clear dialogue
+		      wait 0.2 seconds
+			say single line "Your relations with your ally has improved."
+			    wait until read and 2 seconds
+		   clear dialogue
+		      wait 0.2 seconds
+			HealMiracleAlreadyCast = 2
+     elsif FireMiracleAlreadyCast == 1 and hand position near {NewGodsHand} radius 1.00 and GodHasRelationsWithPlayer == 1
+			clear last gesture
+			clear player 0 spell charging
+			clear left clicked position
+			clear right clicked position
+			clear get object held hit land
+			clear get object held hit object
+		NewRelationshipValue -= 0.10
+		   clear dialogue
+		      wait 0.2 seconds
+			say single line "Your relations with your ally has diminished."
+			    wait until read and 2 seconds
+		   clear dialogue
+		      wait 0.2 seconds
+			FireMiracleAlreadyCast = 2
+     elsif MeteorMiracleAlreadyCast == 1 and hand position near {NewGodsHand} radius 1.00 and GodHasRelationsWithPlayer == 1
+			clear last gesture
+			clear player 0 spell charging
+			clear left clicked position
+			clear right clicked position
+			clear get object held hit land
+			clear get object held hit object
+		NewRelationshipValue -= 0.10
+		   clear dialogue
+		      wait 0.2 seconds
+			say single line "Your relations with your ally has diminished."
+			    wait until read and 2 seconds
+		   clear dialogue
+		      wait 0.2 seconds
+			MeteorMiracleAlreadyCast = 0
+			FireMiracleAlreadyCast = 0
+			HealMiracleAlreadyCast = 0
+			WaterMiracleAlreadyCast = 0
+			StormMiracleAlreadyCast = 0
+     elsif StormMiracleAlreadyCast == 1 and hand position near {NewGodsHand} radius 1.00 and GodHasRelationsWithPlayer == 1
+			clear last gesture
+			clear player 0 spell charging
+			clear left clicked position
+			clear right clicked position
+			clear get object held hit land
+			clear get object held hit object
+		NewRelationshipValue -= 0.10
+		   clear dialogue
+		      wait 0.2 seconds
+			say single line "Your relations with your ally has diminished."
+			    wait until read and 2 seconds
+		   clear dialogue
+		      wait 0.2 seconds
+			StormMiracleAlreadyCast = 0
+			MeteorMiracleAlreadyCast = 0
+			FireMiracleAlreadyCast = 0
+			HealMiracleAlreadyCast = 0
+			WaterMiracleAlreadyCast = 0
+     elsif NearbyObject == get MOBILESTATIC MOBILE_STATIC_INFO_BOULDER_ROUND at hand position radius 50
+     	if NearbyObject exists and NearbyObject is HELD
+		wait until NearbyObject is not HELD
+				enable NearbyObject physics tracking
+			if NearbyObject hit or NearbyObject hit land
+				NewRelationshipValue -= 0.10
+		   clear dialogue
+		      wait 0.2 seconds
+			    say single line "Your relations with your ally have been diminished by hurting their villagers."
+			    clear NearbyObject hit object
+			    clear NearbyObject hit land
+				wait until read or 3 seconds
+					clear dialogue
+			end if
+        end if
+     elsif town NewGodsTown is under takeover from player 0
+		say single line "Attacking the ally's town has severly diminished your relations."
+			NewRelationshipValue -= 0.30
+		     wait until read and 3 seconds
+				clear dialogue
+			wait 0.2 seconds
+     end if
+end dialogue
+end loop
+end script AllyAffectionScript
+
+begin script AllyCheckForPlayerMiracleCasts(NewGodsHand)
+	WaterMiracle = get spell WATER at {NewGodsHand} radius 75
+start
+begin loop
+      if player 0 cast miracle WATER near {NewGodsHand} radius 75 and WaterMiracleAlreadyCast == 0
+		WaterMiracleAlreadyCast = 1
+			wait 2 seconds
+		HealMiracleAlreadyCast = 0
+      elsif player 0 cast miracle HEAL near {NewGodsHand} radius 75 and HealMiracleAlreadyCast == 0
+		HealMiracleAlreadyCast = 1
+			wait 2 seconds
+		WaterMiracleAlreadyCast = 0
+      elsif player 0 cast miracle FIRE near {NewGodsHand} radius 75
+		FireMiracleAlreadyCast = 1
+			wait 2 seconds
+      elsif player 0 cast miracle METEOR near {NewGodsHand} radius 75
+		MeteorMiracleAlreadyCast = 1
+			wait 2 seconds
+      elsif player 0 cast miracle STORM near {NewGodsHand} radius 75
+		StormMiracleAlreadyCast = 1
+			wait 2 seconds
+      end if
+end loop
+end script AllyCheckForPlayerMiracleCasts
+
+begin script EnemyAffectionScript(NewRelationshipValue, SetGodsStarterThreshold, EnemyThresholdMax, AllyThresholdMax, NeutralThreshold, NeutralThresholdToAlly, NeutralThresholdToEnemy, NewGodsHand, NewGodsTown, AffectionSessionStarted, GodHasRelationsWithPlayer)
+	StoragePit = get building STOREHOUSE in NewGodsTown min built 1.0
+
+	NearbyObject = 0
+	HandPos = marker at hand position
+	Miracles = variable constant from WATER to HEAL
+	GodHasNoInterestInPlayer = 0
+	WaterMiracleCast = get spell WATER at {NewGodsHand} radius 75
+	HealMiracleCast = get spell HEAL at {NewGodsHand} radius 75
+start
+	NewRelationshipValue = SetGodsStarterThreshold
+	NearbyObject = get object held
+
+	enable town NewGodsTown can be taken by force
+	run background script EnemyCheckForPlayerMiracleCasts(NewGodsHand)
+begin loop
+while AffectionSessionStarted == 1
+begin dialogue
+if GodHasNoInterestInPlayer == 0
+     if WaterMiracleAlreadyCast == 1 and hand position near {NewGodsHand} radius 10.00 and GodHasRelationsWithPlayer != 1
+			clear last gesture
+			clear player 0 spell charging
+			clear left clicked position
+			clear right clicked position
+			clear get object held hit land
+			clear get object held hit object
+		NewRelationshipValue += 0.12
+		   clear dialogue
+		      wait 0.2 seconds
+			say single line "Your relations with the enemy has improved."
+			    wait until read and 2 seconds
+		   clear dialogue
+		      wait 0.2 seconds
+			WaterMiracleAlreadyCast = 2
+				wait 20 seconds
+			WaterMiracleAlreadyCast = 0
+			HealMiracleAlreadyCast = 0
+			FireMiracleAlreadyCast = 0
+			MeteorMiracleAlreadyCast = 0
+			StormMiracleAlreadyCast = 0
+     elsif HealMiracleAlreadyCast == 1 and hand position near {NewGodsHand} radius 10.00 and GodHasRelationsWithPlayer != 1
+			clear last gesture
+			clear player 0 spell charging
+			clear left clicked position
+			clear right clicked position
+			clear get object held hit land
+			clear get object held hit object
+		NewRelationshipValue += 0.22
+		   clear dialogue
+		      wait 0.2 seconds
+			say single line "Your relations with the enemy has improved."
+			    wait until read and 2 seconds
+		   clear dialogue
+		      wait 0.2 seconds
+				close dialogue
+			HealMiracleAlreadyCast = 0
+			WaterMiracleAlreadyCast = 0
+			FireMiracleAlreadyCast = 0
+			MeteorMiracleAlreadyCast = 0
+			StormMiracleAlreadyCast = 0
+     elsif FireMiracleAlreadyCast == 1 and hand position near {NewGodsHand} radius 10.00 and GodHasRelationsWithPlayer != 1
+			clear last gesture
+			clear player 0 spell charging
+			clear left clicked position
+			clear right clicked position
+			clear get object held hit land
+			clear get object held hit object
+		NewRelationshipValue -= 0.10
+		   clear dialogue
+		      wait 0.2 seconds
+			say single line "Your relations with the enemy has diminished."
+			    wait until read and 2 seconds
+		   clear dialogue
+		      wait 0.2 seconds
+				close dialogue
+			FireMiracleAlreadyCast = 0
+			WaterMiracleAlreadyCast = 0
+			HealMiracleAlreadyCast = 0
+			MeteorMiracleAlreadyCast = 0
+			StormMiracleAlreadyCast = 0
+     elsif MeteorMiracleAlreadyCast == 1 and hand position near {NewGodsHand} radius 10.00 and GodHasRelationsWithPlayer != 1
+			clear last gesture
+			clear player 0 spell charging
+			clear left clicked position
+			clear right clicked position
+			clear get object held hit land
+			clear get object held hit object
+		NewRelationshipValue -= 0.10
+		   clear dialogue
+		      wait 0.2 seconds
+			say single line "Your relations with the enemy has diminished."
+			    wait until read and 2 seconds
+		   clear dialogue
+		      wait 0.2 seconds
+				close dialogue
+			MeteorMiracleAlreadyCast = 0
+			FireMiracleAlreadyCast = 0
+			WaterMiracleAlreadyCast = 0
+			HealMiracleAlreadyCast = 0
+			StormMiracleAlreadyCast = 0
+     elsif StormMiracleAlreadyCast == 1 and hand position near {NewGodsHand} radius 10.00 and GodHasRelationsWithPlayer != 1
+			clear last gesture
+			clear player 0 spell charging
+			clear left clicked position
+			clear right clicked position
+			clear get object held hit land
+			clear get object held hit object
+		NewRelationshipValue -= 0.10
+		   clear dialogue
+		      wait 0.2 seconds
+			say single line "Your relations with the enemy has diminished."
+			    wait until read and 2 seconds
+		   clear dialogue
+		      wait 0.2 seconds
+				close dialogue
+			StormMiracleAlreadyCast = 0
+			MeteorMiracleAlreadyCast = 0
+			FireMiracleAlreadyCast = 0
+			WaterMiracleAlreadyCast = 0
+			HealMiracleAlreadyCast = 0
+     elsif NearbyObject == get MOBILESTATIC MOBILE_STATIC_INFO_BOULDER_ROUND at hand position radius 50
+     	if NearbyObject is HELD
+		wait until NearbyObject is not HELD
+				enable NearbyObject physics tracking
+			if NearbyObject hit or NearbyObject hit land
+				NewRelationshipValue -= 0.10
+		   clear dialogue
+		      wait 0.2 seconds
+			    say single line "Your relations with the enemy have been diminished by hurting their villagers."
+			    clear NearbyObject hit object
+			    clear NearbyObject hit land
+				wait until read or 3 seconds
+					clear dialogue
+			end if
+        end if
+     elsif town NewGodsTown is under takeover from player 0
+		say single line "Attacking the enemy's town has severly diminished your relations."
+			NewRelationshipValue -= 0.30
+		     wait until read and 3 seconds
+				clear dialogue
+			wait 0.2 seconds
+     end if
+elsif GodHasNoInterestInPlayer == 1
+     if player 0 cast miracle MIRACLE_TYPE_WATER near {NewGodsHand} radius 50 or player 0 cast miracle MIRACLE_TYPE_HEAL near {NewGodsHand} radius 100
+	 clear left clicked position
+	 clear right clicked position
+		NewRelationshipValue += 0.05
+		   clear dialogue
+		      wait 0.2 seconds
+			say single line "This god has no interest in your actions."
+			    wait until read
+		   clear dialogue
+		      wait 0.2 seconds
+     end if
+end if
+end dialogue
+end while
+end loop
+end script EnemyAffectionScript
+
+begin script EnemyCheckForPlayerMiracleCasts(NewGodsHand)
+start
+begin loop
+      if player 0 cast miracle WATER near {NewGodsHand} radius 75 and WaterMiracleAlreadyCast == 0
+		WaterMiracleAlreadyCast = 1
+			wait 2 seconds
+		HealMiracleAlreadyCast = 0
+      elsif player 0 cast miracle HEAL near {NewGodsHand} radius 75 and HealMiracleAlreadyCast == 0
+		HealMiracleAlreadyCast = 1
+			wait 2 seconds
+		WaterMiracleAlreadyCast = 0
+      elsif player 0 cast miracle FIRE near {NewGodsHand} radius 75
+		FireMiracleAlreadyCast = 1
+			wait 2 seconds
+      elsif player 0 cast miracle METEOR near {NewGodsHand} radius 75
+		MeteorMiracleAlreadyCast = 1
+			wait 2 seconds
+      elsif player 0 cast miracle STORM near {NewGodsHand} radius 75
+		StormMiracleAlreadyCast = 1
+			wait 2 seconds
+      end if
+end loop
+end script EnemyCheckForPlayerMiracleCasts
+
+begin script HandleAffection(NewRelationshipValue, EnemyThresholdMax, AllyThresholdMax, NeutralThreshold, NeutralThresholdToAlly, NeutralThresholdToEnemy, NewGodsTown)
+
+start
+begin loop
+	if NewRelationshipValue == AllyThresholdMax and get NewGodsTown player != 0
+		set NewGodsTown player 0
+	elsif NewRelationshipValue == EnemyThresholdMax and get NewGodsTown player == 0
+		set NewGodsTown player -1
+	end if
+end loop
+end script HandleAffection
+
+begin script GodHelpRepairBuildings(RandomHome, NewGodsHand, NewGodsTown)
+	BuildingToRepair = get HEALTH of RandomHome
+start
+  if BuildingToRepair is HOUSEA
+	BuildingToRepair = get HEALTH of get building HOUSEA in NewGodsTown min built HEALTH of BuildingToRepair
+  elsif RandomHome is HOUSEB
+	BuildingToRepair = get HEALTH of get building HOUSEB in NewGodsTown min built HEALTH of BuildingToRepair
+  elsif RandomHome is HOUSEC
+	BuildingToRepair = get HEALTH of get building HOUSEC in NewGodsTown min built HEALTH of BuildingToRepair
+  elsif RandomHome is HOUSED
+	BuildingToRepair = get HEALTH of get building HOUSED in NewGodsTown min built HEALTH of BuildingToRepair
+  elsif RandomHome is HOUSEE
+	BuildingToRepair = get HEALTH of get building HOUSEE in NewGodsTown min built HEALTH of BuildingToRepair
+  end if
+     wait until BuildingToRepair exists
+	ALTITUDE of NewGodsHand = 12.00
+  while {NewGodsHand} not near {BuildingToRepair} radius 0.1
+	XANGLE of NewGodsHand = 0.00
+	ZANGLE of NewGodsHand = 0.00
+	ANGLE of NewGodsHand = 0.00
+	ALTITUDE of NewGodsHand = 12.00
+	set NewGodsHand velocity heading {BuildingToRepair} speed 40.00
+  end while
+end script GodHelpRepairBuildings
+
+begin script FindUnbuilt(NewGodsTown, NewGodsHand, AbodeUnderConstruction)
+	Houses = variable constant from ABODE_NUMBER_A to ABODE_NUMBER_E
+start
+while get number of unbuilt constant Houses in NewGodsTown > 0
+  	AbodeUnderConstruction = get building ABODE_NUMBER_A in NewGodsTown max built 0.5
+	if not AbodeUnderConstruction exists
+		AbodeUnderConstruction = get building ABODE_NUMBER_B in NewGodsTown max built 0.5
+	end if
+	if not AbodeUnderConstruction exists
+		AbodeUnderConstruction = get building ABODE_NUMBER_C in NewGodsTown max built 0.5
+	end if
+	if not AbodeUnderConstruction exists
+		AbodeUnderConstruction = get building ABODE_NUMBER_D in NewGodsTown max built 0.5
+	end if
+	if not AbodeUnderConstruction exists
+		AbodeUnderConstruction = get building ABODE_NUMBER_E in NewGodsTown max built 0.5
+	end if
+    
+        if AbodeUnderConstruction exists
+		run script GodHelpConstructHousing(NewGodsHand, NewGodsTown, AbodeUnderConstruction)
+	end if
+end while
+end script FindUnbuilt
+
+begin script FindUnbuiltCivics(NewGodsTown, NewGodsHand, ThisBuilding)
+	Civics = variable constant from ABODE_NUMBER_SKYSCRAPER to ABODE_NUMBER_BATHHOUSE
+start
+while get number of unbuilt constant Civics in NewGodsTown > 0
+  	ThisBuilding = get building ABODE_NUMBER_SKYSCRAPER in NewGodsTown max built 0.5
+	if not ThisBuilding exists
+		ThisBuilding = get building ABODE_NUMBER_ALTAR in NewGodsTown max built 0.5
+	end if
+	if not ThisBuilding exists
+		ThisBuilding = get building ABODE_NUMBER_STORAGE_PIT in NewGodsTown max built 0.5
+	end if
+	if not ThisBuilding exists
+		ThisBuilding = get building ABODE_NUMBER_CRECHE in NewGodsTown max built 0.5
+	end if
+	if not ThisBuilding exists
+		ThisBuilding = get building ABODE_NUMBER_SHRINE in NewGodsTown max built 0.5
+	end if
+	if not ThisBuilding exists
+		ThisBuilding = get building ABODE_NUMBER_TEMPLE in NewGodsTown max built 0.5
+	end if
+	if not ThisBuilding exists
+		ThisBuilding = get building ABODE_NUMBER_PUB in NewGodsTown max built 0.5
+	end if
+	if not ThisBuilding exists
+		ThisBuilding = get building ABODE_NUMBER_CREATURE_PEN in NewGodsTown max built 0.5
+	end if
+	if not ThisBuilding exists
+		ThisBuilding = get building ABODE_NUMBER_WORKSHOP in NewGodsTown max built 0.5
+	end if
+	if not ThisBuilding exists
+		ThisBuilding = get building ABODE_NUMBER_STUDY in NewGodsTown max built 0.5
+	end if
+	if not ThisBuilding exists
+		ThisBuilding = get building ABODE_NUMBER_UNIVERSITY in NewGodsTown max built 0.5
+	end if
+	if not ThisBuilding exists
+		ThisBuilding = get building ABODE_NUMBER_PRISON in NewGodsTown max built 0.5
+	end if
+	if not ThisBuilding exists
+		ThisBuilding = get building ABODE_NUMBER_SMELTER in NewGodsTown max built 0.5
+	end if
+	if not ThisBuilding exists
+		ThisBuilding = get building ABODE_NUMBER_GRANARY in NewGodsTown max built 0.5
+	end if
+	if not ThisBuilding exists
+		ThisBuilding = get building ABODE_NUMBER_LUMBERMILL in NewGodsTown max built 0.5
+	end if
+	if not ThisBuilding exists
+		ThisBuilding = get building ABODE_NUMBER_MARKET_POT in NewGodsTown max built 0.5
+	end if
+	if not ThisBuilding exists
+		ThisBuilding = get building ABODE_NUMBER_MARKET_STATUE in NewGodsTown max built 0.5
+	end if
+	if not ThisBuilding exists
+		ThisBuilding = get building ABODE_NUMBER_MARKET_PLANT in NewGodsTown max built 0.5
+	end if
+	if not ThisBuilding exists
+		ThisBuilding = get building ABODE_NUMBER_AMPITHEATRE in NewGodsTown max built 0.5
+	end if
+	if not ThisBuilding exists
+		ThisBuilding = get building ABODE_NUMBER_GRAVEYARD in NewGodsTown max built 0.5
+	end if
+	if not ThisBuilding exists
+		ThisBuilding = get building ABODE_NUMBER_OLD_PERSONS_HOME in NewGodsTown max built 0.5
+	end if
+	if not ThisBuilding exists
+		ThisBuilding = get building ABODE_NUMBER_BATHHOUSE in NewGodsTown max built 0.5
+	end if
+    
+        if ThisBuilding exists
+		run script GodHelpConstructCivics(NewGodsHand, NewGodsTown, ThisBuilding)
+	end if
+end while
+end script FindUnbuiltCivics
+
+begin script ShieldMiracle(NewGodsHand, NewGodsTown, FireMiracle)
+	 TownCentre = get building TOWNCENTRE in NewGodsTown min built 1.0
+	 ShieldMiracle = 0
+	 InfluenceRing = marker at get nearest position at NewGodsTown influence ring from {TownCentre}
+	 ShieldMiracleVis = 0
+	 ShieldMiracle2 = 0
+         ShieldInf = 0
+	 charge = 0
+start
+      while {NewGodsHand} not near {TownCentre} radius 1.00
+	ALTITUDE of NewGodsHand = 16.00
+	set NewGodsHand velocity heading {TownCentre} speed 60.00
+	   wait 0.05 seconds
+      end while
+	ALTITUDE of NewGodsHand = 16.00
+	   wait 0.05 seconds
+      ShieldMiracle = make player 1 pour miracle MAGIC_TYPE_SHIELD at {TownCentre}
+	wait 2 seconds
+      while {ShieldMiracle} not near {TownCentre}+{90,0,0} radius 1.00
+           XPOS of ShieldMiracle = XPOS of ShieldMiracle + 6.00
+         wait 0.05 seconds
+      end while
+	  if player 1 cast miracle MAGIC_TYPE_SHIELD near {NewGodsTown} radius 100
+		say single line "Shield Miracle Cast"
+		ShieldMiracle2 = create MAGIC_TYPE_SHIELD at {NewGodsTown}
+	  end if
+end script ShieldMiracle
