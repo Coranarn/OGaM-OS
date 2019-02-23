@@ -1,10 +1,5 @@
 // God AI - version 2.3
 // Copyright 2007 - onward Daxter
-// Number of Scripts: 41
-// Global Variables: 19
-// Defined variables: 9
-// OGaM Specific: Yes
-// User-Friendly: Yes
 
 // Script can be searched by entering the following 
 // codes to reach a certain part of this file.
